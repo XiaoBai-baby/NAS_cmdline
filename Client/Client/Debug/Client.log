@@ -1,0 +1,4 @@
+﻿  FtpClient.cpp
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\osapi\Thread.h(4,1): warning C4005: “_CRT_SECURE_NO_WARNINGS”: 宏重定义
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\ftp\FtpClient.cpp : message : 参见“_CRT_SECURE_NO_WARNINGS”的前一个定义
+  Client.vcxproj -> E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\Debug\Client.exe
