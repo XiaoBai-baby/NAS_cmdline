@@ -1,0 +1,5 @@
+﻿  FtpService.cpp
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Server\osapi\osapi.h(4,1): warning C4005: “_CRT_SECURE_NO_WARNINGS”: 宏重定义
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Server\ftp\FtpService.cpp : message : 参见“_CRT_SECURE_NO_WARNINGS”的前一个定义
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Server\ftp\FtpService.cpp(416,10): warning C4101: “CanAccess”: 未引用的局部变量
+  Server.vcxproj -> E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Server\Debug\Server.exe
