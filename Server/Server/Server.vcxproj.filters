@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="osapi">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="tcpserver">
+      <UniqueIdentifier>{9c6015d1-3292-4e5c-88de-00ec947a2f1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utility">
+      <UniqueIdentifier>{5aa77408-af05-4a4c-b01d-33e933c18073}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jsoncpp">
+      <UniqueIdentifier>{c91bbf54-89d7-4448-ad11-57fb72015090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jsoncpp\include">
+      <UniqueIdentifier>{6f9f55c3-ad7e-4297-a71c-8dbb8af2e75e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jsoncpp\src">
+      <UniqueIdentifier>{342a4b37-703b-4f58-a82f-99962dee9fc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ftp">
+      <UniqueIdentifier>{be04fd44-359f-41ea-bef3-3819c7d10c70}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Socket.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\TcpConnect.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Thread_Linux.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Thread_Win32.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tcpserver\TcpServer.cpp">
+      <Filter>tcpserver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tcpserver\TcpServiceTask.cpp">
+      <Filter>tcpserver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tcpserver\TcpTaskMonitor.cpp">
+      <Filter>tcpserver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Mutex_Linux.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Mutex_Win32.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Semaphore_Linux.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osapi\Semaphore_Win32.cpp">
+      <Filter>osapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tcpserver\BusinessService.cpp">
+      <Filter>tcpserver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utility\Endian.cpp">
+      <Filter>utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utility\ThreadTcpRecv.cpp">
+      <Filter>utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utility\ByteBuffer.cpp">
+      <Filter>utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jsoncpp\src\json_reader.cpp">
+      <Filter>jsoncpp\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jsoncpp\src\json_value.cpp">
+      <Filter>jsoncpp\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jsoncpp\src\json_writer.cpp">
+      <Filter>jsoncpp\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utility\CharacterEncoding.cpp">
+      <Filter>utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ftp\FtpService.cpp">
+      <Filter>ftp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utility\FileUtils.cpp">
+      <Filter>utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ftp\FtpUser.cpp">
+      <Filter>ftp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ftp\FtpFileHandler.cpp">
+      <Filter>ftp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\osapi\osapi.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\osapi\Socket.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\osapi\TcpConnect.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\osapi\Thread.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tcpserver\TcpServer.h">
+      <Filter>tcpserver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tcpserver\TcpServiceTask.h">
+      <Filter>tcpserver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tcpserver\TcpTaskMonitor.h">
+      <Filter>tcpserver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\osapi\Mutex.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\osapi\Semaphore.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utility\Endian.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utility\utility.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utility\ThreadTcpRecv.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utility\ByteBuffer.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\allocator.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\assertions.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\config.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\forwards.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\json.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\json_features.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\reader.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\value.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\version.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\include\writer.h">
+      <Filter>jsoncpp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\jsoncpp\src\json_tool.h">
+      <Filter>jsoncpp\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utility\CharacterEncoding.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ftp\FtpService.h">
+      <Filter>ftp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ftp\MsgDefine.h">
+      <Filter>ftp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utility\FileUtils.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ftp\FtpUser.h">
+      <Filter>ftp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ftp\FtpFileHandler.h">
+      <Filter>ftp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\jsoncpp\include\CMakeLists.txt">
+      <Filter>jsoncpp\include</Filter>
+    </Text>
+    <Text Include="..\jsoncpp\src\CMakeLists.txt">
+      <Filter>jsoncpp\src</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\jsoncpp\src\json_valueiterator.inl">
+      <Filter>jsoncpp\src</Filter>
+    </None>
+  </ItemGroup>
+</Project>
