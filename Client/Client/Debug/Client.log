@@ -1,0 +1,13 @@
+﻿  FtpClient.cpp
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\ftp\FtpClient.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\ftp\FtpClient.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\ftp\MsgDefine.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\osapi\Socket.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\osapi\Thread.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\osapi\Thread.h(4,1): warning C4005: “_CRT_SECURE_NO_WARNINGS”: 宏重定义
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\ftp\FtpClient.cpp : message : 参见“_CRT_SECURE_NO_WARNINGS”的前一个定义
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\utility\Endian.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\utility\ByteBuffer.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\utility\FileUtils.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\utility\CharacterEncoding.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  Client.vcxproj -> E:\C++\C++项目代码\C++服务器框架\Socket_套接字_2\Client\Debug\Client.exe
