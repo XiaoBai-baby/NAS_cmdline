@@ -1,0 +1,73 @@
+1.Linux C语言中socket使用讲解
+https://blog.csdn.net/leafage_m/article/details/78459799
+
+2.C中socket函数的基本使用
+https://www.jianshu.com/p/350178453385
+
+3.ioctlsocket()用法
+https://blog.csdn.net/zhu2695/article/details/8883731
+
+4.C++中explicit的用法
+https://blog.csdn.net/qq_35524916/article/details/58178072
+
+5.__stdcall详解
+https://blog.csdn.net/qinrenzhi/article/details/94997119
+
+6.C++windows编程中的_In_、_Out_、_inout_等宏定义
+https://blog.csdn.net/weixin_42709632/article/details/106000077
+
+7.IP地址转换函数inet_addr(),inet_aton(),inet_ntoa(),int_pton()
+https://blog.csdn.net/Lurora0/article/details/117413828
+
+8.setsockopt()函数详解
+https://blog.csdn.net/qq_41960161/article/details/122705626
+
+9.ioctlsocket() 用法
+https://blog.csdn.net/zhu2695/article/details/8883731
+
+10.SO_SNDBUF和SO_RCVBUF
+https://www.cnblogs.com/embedded-linux/p/9534205.html
+
+11.Socket:shutdown()函数：优雅地断开TCP连接
+https://blog.csdn.net/carey_csdn/article/details/101711637
+
+12.#pragma comment(lib, "XXX.lib")学习
+https://blog.csdn.net/qq_35332692/article/details/78964304
+
+12.02 Ws2_32.lib是做什么用的？
+https://blog.csdn.net/yaneng/article/details/4280306
+
+13.WSADATA
+https://blog.csdn.net/liuhongwei_study/article/details/8128207
+
+14.C++：Socket：WSAStartup和WSADATA
+https://blog.csdn.net/Kevin_Z_Q/article/details/121030178
+
+15.C/C++中near和far的区别
+https://www.cnblogs.com/perfy/p/4535618.html
+
+16.TCP带外数据OOB
+https://blog.csdn.net/ty_laurel/article/details/52164669
+
+16.01 linux下fctrl（）函数
+https://blog.csdn.net/qq_26617115/article/details/53640301
+
+16.02 C 库函数 - signal() 函数
+https://www.runoob.com/cprogramming/c-function-signal.html
+
+17.getpeername 函数 (winsock.h)
+https://learn.microsoft.com/zh-cn/windows/win32/api/winsock/nf-winsock-getpeername
+
+18.内联函数 —— C 中关键字 inline 用法解析
+https://zhuanlan.zhihu.com/p/89554322
+
+18.01 strcat函数解析
+https://blog.csdn.net/codezhu/article/details/118575330 
+
+19.往后都是
+https://learn.microsoft.com/zh-cn/windows/win32/api/winsock/nf-winsock-getpeername
+https://learn.microsoft.com/zh-cn/windows/win32/api/winsock/
+
+
+了解 TCP协议的网站
+https://www.cnblogs.com/mq0036/p/11187138.html
