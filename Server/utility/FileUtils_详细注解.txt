@@ -1,9 +1,0 @@
-1. 关于C++中如何判断文件、目录存在的若干方法
-https://blog.csdn.net/chinawangfei/article/details/42487839
-
-2. Linux下，判断路径为目录还是文件，并确定目录下是否存在指定格式（*.*）的文件
-https://blog.csdn.net/UniverseLin/article/details/125415361
-
-3. 以后都是
-https://learn.microsoft.com/zh-cn/cpp/c-runtime-library/
-https://learn.microsoft.com/zh-cn/windows/win32/api/fileapi/
