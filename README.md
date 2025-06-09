@@ -9,5 +9,5 @@ Use common Linux commands to download and upload files, support TCP/IP protocol 
 **Window**: Run "*.sln" file.
 
 ### Options
--the Windows system supports C++14, C++17 and C++20.  
--the Linux system supports C++11.
+* the Windows system supports C++14, C++17 and C++20.  
+* the Linux system supports C++11.
