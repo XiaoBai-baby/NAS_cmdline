@@ -79,6 +79,12 @@ public:
 	// 获取当前时间;
 	static string AsTime(bool asDaytime = true);
 
+	// 将 '/'字符转换成 '\\', 用于执行 Windows CMD命令;
+	static string BackSlash(const string dir);
+
+	// 删除 Windows 命令行的字符;
+	static void RemoveWindowsCharacter(int number, int line_offset = 0);
+
 public:
 	// 登录成功的返回结果;
 	static string Login_Result(Json::Value jsonlist);

@@ -5,6 +5,7 @@ nasClient::nasClient(OS_TcpSocket sock, int bufsize) : m_SendSock(sock), m_buffe
 	// 判断是否为 Windows系统;
 #ifdef _WIN32
 	client_system = 1;
+	SetConsoleTitleA("NAS Cmdline");			// 更改窗口标题;
 #endif
 
 	is_login = false;
@@ -132,14 +133,23 @@ void nasClient::in_get(string cmdline, char* argv[128], int argc)
 		}
 		
 		// 排除 "..", "." 符号;
-		int length = test.find("..");
+		long long length = test.find("..");
 		if(length < 0)
 			length = test.find("/.");
 
-		if (length >= 0 || test == ".")
+		if (test == ".")
 		{
 			printf("reason: Don't use '.' or '..' symbol downloads the file, it is not allowed . \n\n");
 			return;
+		}
+
+		if (length >= 0)
+		{
+			if (test[length + 2] == '/' || test[length + 2] == 0)
+			{
+				printf("reason: Don't use '.' or '..' symbol downloads the file, it is not allowed . \n\n");
+				return;
+			}
 		}
 	}
 
@@ -197,11 +207,20 @@ void nasClient::in_put(string cmdline, char* argv[128], int argc)
 			return ;
 		
 		// 排除 ".." "/." "." 符号;
-		int length = cmd.find("/.");
-		if (length >= 0 || cmd == "." || cmd == ".." || cmd == "./" || cmd == "../")
+		long long length = cmd.find("/.");
+		if (cmd == "." || cmd == ".." || cmd == "./" || cmd == "../")
 		{
 			printf("reason: Don't use '.' or '..' symbol uploads the file, it is not allowed . \n\n");
 			return;
+		}
+
+		if (length >= 0)
+		{
+			if (cmd[length + 2] == '/' || cmd[length + 2] == 0)
+			{
+				printf("reason: Don't use '.' or '..' symbol downloads the file, it is not allowed . \n\n");
+				return;
+			}
 		}
 		
 		// 用于记录'/'的位置;
@@ -236,13 +255,18 @@ void nasClient::in_put(string cmdline, char* argv[128], int argc)
 	sendData(MSG_PUT, result.c_str());
 }
 
-void nasClient::in_rm()
+void nasClient::in_off_line(int code)
 {
 	char buf[32] = { 0 };
 
 	while (true)
 	{
-		printf("need to delete it offline [y or n]: ");
+		if(code == JSON_REMOVE2)
+			printf("is it need to delete it offline [y or n]: ");
+		else if(code == JSON_MOVE2)
+			printf("is it need to move it offline [y or n]: ");
+		else
+			printf("is it need to copy it offline [y or n]: ");
 
 	#ifdef _WIN32
 		gets_s(buf, 32);
@@ -254,14 +278,19 @@ void nasClient::in_rm()
 		buf[length - 1] = 0;
 	#endif
 
-		if ((buf[0] == 'y' || buf[0] == 'Y') && buf[1] == '\0')
+		if ((buf[0] == 'n' || buf[0] == 'N') && buf[1] == '\0')
 		{
-			sendData(MSG_REMOVE2, m_cmdline.c_str());
 			break;
 		}
 
-		if ((buf[0] == 'n' || buf[0] == 'N') && buf[1] == '\0')
+		if ((buf[0] == 'y' || buf[0] == 'Y') && buf[1] == '\0')
 		{
+			if(code == JSON_REMOVE2)
+				sendData(MSG_REMOVE2, m_cmdline.c_str());
+			else if(code == JSON_MOVE2)
+				sendData(MSG_MOVE2, m_cmdline.c_str());
+			else if(code == JSON_COPY2)
+				sendData(MSG_COPY2, m_cmdline.c_str());
 			break;
 		}
 	}
@@ -361,6 +390,33 @@ void nasClient::start(const char* username,const char* password)
 
 			continue;
 		}
+		else if (cmd == "mkdir" || cmd == "mkDir" || cmd == "Mkdir")
+		{
+			if (argc > 1)
+				sendData(MSG_MAKEDIR, cmdline2);
+
+			continue;
+		}
+		else if (cmd == "mv" || cmd == "Mv")
+		{
+			if (argc > 2)
+			{
+				sendData(MSG_MOVE, cmdline2);
+				printf("\n");
+			}
+
+			continue;
+		}
+		else if (cmd == "cp" || cmd == "Cp")
+		{
+			if (argc > 2)
+			{
+				sendData(MSG_COPY, cmdline2);
+				printf("\n");
+			}
+
+			continue;
+		}
 		else if (cmd == "get" || cmd == "Get")
 		{
 			if(argc > 1)
@@ -379,6 +435,11 @@ void nasClient::start(const char* username,const char* password)
 		{
 			string help = FileUtils::Help_Result();
 			printf("%s", help.c_str());
+			continue;
+		}
+		else if (cmd == "pwd" || cmd == "Pwd")
+		{
+			sendData(MSG_PWD);
 			continue;
 		}
 		else if (cmd == "exit" || cmd == "Exit")
@@ -477,23 +538,27 @@ int nasClient::sendMessages(unsigned short type, const void* data, unsigned int 
 
 void nasClient::showResponse(Json::Value& jsonResponse)
 {
-	int errorCode = jsonResponse["errorCode"].asInt();
+	int code = jsonResponse["code"].asInt();
 	string reason = jsonResponse["reason"].asString();
 
 	char system = jsonResponse["system"].asInt();
 	string result = jsonResponse["result"].asString();
+	bool response_again = jsonResponse["again"].asBool();
 	
 	char buf[1024 * 6] = {0};				// 接收应答的缓存;
 	int response_length = 0;				// 接收应答的长度;
 	string character;						// 编码转换的结果;
 	bool is_login = false;					// 是否成功登录;  
 
-	// 显示应答结果;
-	switch (errorCode)
-	{
-	case 11:			// 不同系统的 login, ls, ll
+	// 二次接收响应数据;
+	if (response_again)
 		response_length = serviceRequest(jsonResponse, buf, true);
 
+	// 显示应答结果;
+	switch (code)
+	{
+	case JSON_PWD:
+	case JSON_LOGIN_AND_LIST:					// 不同系统的 login, ls, ll
 		// 登录成功, 获取服务端的系统;
 		if (!is_login)
 		{
@@ -502,36 +567,46 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 			m_file(system);
 		}
 
+		if (response_length <= 0)
+			break;
+
 		// 不同系统之间的编码转换;
-		if (client_system != server_system)
+		if (client_system != server_system && response_again)
 		{
 			character = m_file.characterEncoding(buf, response_length);
 			throw string(character);
 		}
-		else
+		else if(response_again)
 		{
 			throw string(buf);
+		}
+		else
+		{
+			throw string(result);
 		}
 
 		break;
 
-	case 12:			// cd
+	case JSON_CD:
 		if (reason == "OK")
 		{
-			response_length = serviceRequest(jsonResponse, buf, true);
-
 			if (response_length > 0)					// 判断是否为目录;
 			{
 				// 不同系统之间的编码转换;
-				if (client_system != server_system)
+				if (client_system != server_system && response_again)
 				{
 					character = m_file.characterEncoding(buf, response_length);
 					m_path = " " + character;
 				}
-				else
+				else if(response_again)
 				{
 					m_path = " ";
 					m_path += buf;
+				}
+				else
+				{
+					m_path = " ";
+					m_path += result;
 				}
 			}
 			else										 // 返回根目录;
@@ -541,31 +616,46 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 		}
 		else
 		{
+			if(response_again)
+				throw string(buf);
+
 			throw string(result);
 		}
 		break;
 
-	case 15:			// rm
-	case 16:
+
+	case JSON_MOVE:
+	case JSON_MOVE2:
+	case JSON_COPY:
+	case JSON_COPY2:
+	case JSON_REMOVE:
+	case JSON_REMOVE2:
 		if (reason != "OK")
 		{
-			response_length = serviceRequest(jsonResponse, buf, true);
+			// 不同系统之间的编码转换;
+			if (client_system != server_system && response_again)
+				character = m_file.characterEncoding(buf, response_length);
+			
+			if (response_length <= 0)
+				break;
+			printf("%s", character.c_str());
 
-			if (response_length > 0)
-			{
-				printf("%s", buf);
-				in_rm();
-			}
+			in_off_line(code);
 		}
 		break;
 
-	case 20:			// get
+	case JSON_GET:
 		if (reason == "OK")
 		{
 			OS_Mutex mutex;
+			printf("\n[Downloading is in progress]: \n");
 			m_file.downloadFile("/", mutex);
 			
-			m_file(string("."));						// 在Linux下, 不同函数之间的传参必须避免使用字符串(const char*);
+			m_file(string("."));					// 在Linux下, 不同函数之间的传参必须避免使用字符串(const char*);
+		}
+		else if (response_again)
+		{
+			throw string(buf);
 		}
 		else
 		{
@@ -573,10 +663,11 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 		}
 		break;
 
-	case 21:			// put
+	case JSON_PUT:
 		if (reason == "OK")
 		{
 			char* argv[128] = {0};
+			printf("\n[Uploading is in progress]: \n");
 			int argc = FileUtils::Split((char*)m_cmdline.c_str(), argv);
 
 			OS_Mutex mutex;
@@ -586,38 +677,32 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 
 			m_file(string("."));						// 在Linux下, 不同函数之间的传参必须避免使用字符串(const char*);
 		}
+		else if (response_again)
+		{
+			throw string(buf);
+		}
 		else
 		{
 			throw string(result);
 		}
 		break;
 
-	case 0:				// login 或 ls
-
-		// 登录成功, 获取服务端的系统;
-		if (!is_login)
-		{
-			is_login = true;
-			server_system = system;
-			m_file(system);
-		}
-		throw string(result);
-		break;
-
 	default:
-		throw string("reason: " + reason);
-		throw string("result:" + result);
+		if (response_again)
+			throw string("reason: " + string(buf));
+		else 
+			throw string("reason: " + reason);
 		break;
 	}
 
 }
 
-// recv_sesponse 为 true 并且 buf 不为 0时, 函数为正常的接收响应数据;
-// recv_sesponse 为 false 并且 buf 为 0 时, 函数为显示响应服务是否成功; 
+// recv_sesponse 为 true 并且 buf 不为 0时, 函数为接收响应数据;
+// recv_sesponse 为 false 并且 buf 为 0 时, 函数为显示响应服务;
 int nasClient::serviceRequest(Json::Value& jsonResponse, char* buf, bool recv_response)
 {
 	int length = 0;
-	int errorCode = jsonResponse["errorCode"].asInt();
+	int code = jsonResponse["code"].asInt();
 
 	// 二次接收响应数据;
 	if(recv_response && buf != NULL)
@@ -635,7 +720,7 @@ int nasClient::serviceRequest(Json::Value& jsonResponse, char* buf, bool recv_re
 	/* 显示响应服务 */
 
 	// 显示传输错误的信息;
-	if (m_file.fileError.size() > 0 && (errorCode == 20 || errorCode == 21))		// get, put
+	if (m_file.fileError.size() > 0 && (code == JSON_GET || code == JSON_PUT))			// get, put
 	{
 		printf("\n%s", m_file.fileError.c_str());
 		printf("Please perform the correct operation again as required ! \n\n");
@@ -643,7 +728,7 @@ int nasClient::serviceRequest(Json::Value& jsonResponse, char* buf, bool recv_re
 	}
 
 	// 成功响应服务;
-	if (errorCode == 20 || errorCode == 21)							// get, put
+	if (code == JSON_GET || code == JSON_PUT)					// get, put
 	{
 		// 先接收4个字节的数据, 用来指明长度;
 		m_SendSock.Recv(&length, 4, false);

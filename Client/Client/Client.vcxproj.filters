@@ -84,6 +84,9 @@
     <ClCompile Include="..\nas\nasFileHandler.cpp">
       <Filter>nas</Filter>
     </ClCompile>
+    <ClCompile Include="..\nas\offLineService.cpp">
+      <Filter>nas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\osapi\osapi.h">
@@ -159,6 +162,9 @@
       <Filter>nas</Filter>
     </ClInclude>
     <ClInclude Include="..\nas\nasFileHandler.h">
+      <Filter>nas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\nas\offLineService.h">
       <Filter>nas</Filter>
     </ClInclude>
   </ItemGroup>

@@ -17,9 +17,9 @@ void FileUtils::CMD_GBK()
 	//控制台显示乱码纠正
    // system("chcp 936");
 	SetConsoleOutputCP(936);
-	CONSOLE_FONT_INFOEX info = { 0 }; // 以下设置字体来支持中文显示。
+	CONSOLE_FONT_INFOEX info = { 0 }; 			// 以下设置字体来支持中文显示。
 	info.cbSize = sizeof(info);
-	info.dwFontSize.Y = 16; // leave X as zero
+	info.dwFontSize.Y = 16; 			// leave X as zero
 	info.FontWeight = FW_NORMAL;
 	wcscpy_s(info.FaceName, L"Consolas");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), NULL, &info);
@@ -61,7 +61,7 @@ int FileUtils::rmdir(const string dir)
 }
 
 // msg_remove_directory 和 msg_remove_file 分别为处理 MSG_REMOVE的信号;
-// 两个信号无法同时使用, 必须先执行msg_remove_file, 再执行msg_remove_file_directory, 才可以删除整个目录;
+// 两个参数无法同时使用, 必须先执行msg_remove_file, 再执行msg_remove_file_directory, 才可以删除整个目录;
 long long FileUtils::List_size(const string& dir, bool msg_remove_file, bool msg_remove_directory)
 {
 	/* 把/ 换成\\ , 末尾加\\  */
@@ -80,8 +80,8 @@ long long FileUtils::List_size(const string& dir, bool msg_remove_file, bool msg
 	// 系统文件信息;
 	WIN32_FIND_DATAA info;
 	HANDLE hFind = FindFirstFileA((LPCSTR)filter, &info);
-	if (hFind == INVALID_HANDLE_VALUE)
-		printf("FileUtils::List2 FindFirstFileA/W function failed! Error: %d \n", GetLastError());
+	if (hFind == INVALID_HANDLE_VALUE && !msg_remove_file)
+		printf("FileUtils::List2 FindFirstFileA function failed! Error: %d \n", GetLastError());
 	
 	// 文件大小
 	long long fileSize = 0;
@@ -395,13 +395,66 @@ string FileUtils::AsTime(bool asDaytime)
 	return result;
 }
 
+string FileUtils::BackSlash(const string dir)
+{
+	string result = dir;
+	for (int i = 0; i < result.size(); i++)
+	{
+		if (result[i] == '/')
+			result[i] = '\\';
+	}
+	return result;
+}
+
+#ifdef _WIN32
+// number 为删除字符的数量;
+// line_offset 为 命令行 当前行数的偏移量;
+void FileUtils::RemoveWindowsCharacter(int number, int line_offset)
+{
+	// 获取控制台屏幕缓冲区句柄;
+	// HANDLE screen = GetStdHandle(STD_OUTPUT_HANDLE);				// 控制台标准输入句柄被 SetStdHandle 函数重定向, 则无法使用;
+	HANDLE screen = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL, OPEN_EXISTING, NULL, NULL);
+
+	// 控制台屏幕缓冲区扩展信息;
+	// 不推荐使用, 当 GetConsoleScreenBufferInfoEx检索不到扩展信息时, 则返回 false;
+	// _CONSOLE_SCREEN_BUFFER_INFOEX screen_buffer = { 0 };
+
+	// 控制台屏幕缓冲区信息;
+	_CONSOLE_SCREEN_BUFFER_INFO screen_buffer = { 0 };
+
+	// 检索控制台屏幕缓冲区的信息;
+	bool screen_flag = GetConsoleScreenBufferInfo(screen, &screen_buffer);
+	if (screen_flag)
+	{
+		// 获取光标的位置;
+		short x = screen_buffer.dwCursorPosition.X;
+		short y = screen_buffer.dwCursorPosition.Y;
+
+		y -= line_offset;
+
+		// 设置控制台光标的位置;
+		_COORD cursor_position = { number, y };
+		SetConsoleCursorPosition(screen, cursor_position);
+
+		// 移动光标到起始位置;
+		// printf("\x1B[H");
+
+		// 使用ANSI转义的 BackSpace键 删除字符;
+		// 注意, 使用 ANSI码 删除时, 删除的范围只有一行;
+		for (int j = 0; j < number; j++)
+			printf("\x1B[1D");
+	}
+}
+#endif
+
 
 string FileUtils::Login_Result(Json::Value list)
 {
 	string result;
 	result.append("* * * * * * * * * * * * * * * * * * * * * * * * \n");
 	result.append("*                                             * \n");
-	result.append("*          Welcome To The NAS Server .        * \n");
+	result.append("*          Welcome To The NAS cmdline .       * \n");
 	result.append("*                                             * \n");
 	result.append("*  You can use 'help' to consult commands .   * \n");
 	result.append("*                                             * \n");
@@ -498,10 +551,13 @@ string FileUtils::List2_Result(Json::Value list, string& result)
 			result.append(" ");
 		}
 		
+		if(ch == 0)
+			result += " ";
+
 		// 将文件大小 转换成 字符串;
 		string string = std::to_string(fileSize);
 		result.append(string);
-		if(ch != 0)
+		if (ch != 0)
 			result += ch;
 
 		// 获取文件的时间;
@@ -581,11 +637,15 @@ string FileUtils::Help_Result()
 	result.append("\nHELP: \n");
 	result.append("\tls [FILE] - list directory contents . \n");
 	result.append("\tll [FILE] - list detailed directory contents . \n");
-	result.append("\tcd [FILE] - Change  the  current  directory . \n");
+	result.append("\tcd [FILE] - change the current directory . \n");
+	result.append("\tmkdir <FILE> - make the directory . \n");
+	result.append("\trm  <FILE> - delete the file or directory . \n");
 	result.append("\tget <FILE> [ -o Local_directory] - Requests the download files from the server . \n");
 	result.append("\tput <FILE> - Requests the upload files from the server . \n");
-	result.append("\trm  <FILE> - Requests the delete the file or directory from the server . \n");
-	result.append("\texit - Exit the server . \n\n");
+	result.append("\tcp <FILE> <destination> - copy the file or directory . \n");
+	result.append("\tmv <FILE> <destination> - move the file and directory or rename them . \n");
+	result.append("\tpwd - display the current working directory . \n");
+	result.append("\texit - exit the server . \n\n");
 	
 	return result;
 }

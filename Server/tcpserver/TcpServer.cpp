@@ -30,6 +30,10 @@ int TcpServer::startService(int port)
 		return -22;
 	}
 
+#ifndef _WIN32
+	system("clear");
+#endif
+
 	// 启动监听服务
 	TcpTaskMonitor::i()->startService();
 	printf("Server listening on : %d \n", port);

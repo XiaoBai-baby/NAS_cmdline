@@ -13,14 +13,17 @@
 
 #include "MsgDefine.h"
 #include "fileCheck.h"
+#include "offLineService.h"
 #include "../utility/FileUtils.h"
 #include "../jsoncpp/include/json.h"
 
 // STL 模板
+#include <vector>
 #include <string>
 #include <fstream>
 #include <algorithm>
 
+using std::vector;
 using std::string;
 using std::fstream;
 
@@ -47,6 +50,15 @@ public:
 	void operator()(OS_TcpSocket RecvSock, string homeDir, char local_system, bool isClient = false, int size = 1024 * 1024 * 300);
 
 public:
+	// 获取目标文件, 辅助 on_mv, on_cp 使用;
+	string destinationFile(vector<string>& print_file, string& file, string& path, unsigned int type, int argc, int i);
+
+	// 添加文件到文件列表, 辅助 on_mv, on_cp 使用;
+	void add_fileList(vector<string>& total_file, vector<string>& print_file, string& path, string& file, int end_len, int i);
+
+	// 移动或复制文件, 辅助 on_mv, on_cp 使用;
+	vector<string> move_copy_file(vector<string>& total_file, vector<string>& print_file, string& destination_file, unsigned int type, bool off_line = false);
+
 	// 在Linux下, 添加文件的路径, 辅助 ls_linux2使用;
 	string add_directory(Json::Value& jresult, char* file_info[], int argc, int& directory_path, int& count);
 
@@ -119,7 +131,7 @@ private:
 	unsigned int m_type;				// 接收消息的类型
 	unsigned int m_length;				// 接收消息的长度
 
-public:
+public:					
 	string fileError;					// 判断传输文件是否错误;
 
 private:
@@ -128,8 +140,9 @@ private:
 	int cmdline_count;					// 客户端输入子命令时, 返回上一级目录的数量, 即 "/" 的数量;
 
 private:
+	fileCheck m_fileCheck;				// 检查文件或目录
 	OS_TcpSocket Sock;					// 连接客户端的socket地址
-	fileCheck fileCheck;				// 检查文件或目录
+	offLineService offLine;				// 离线服务
 };
 
 #endif

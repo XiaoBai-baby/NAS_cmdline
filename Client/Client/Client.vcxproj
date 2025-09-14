@@ -148,6 +148,7 @@
     <ClCompile Include="..\nas\fileCheck.cpp" />
     <ClCompile Include="..\nas\nasClient.cpp" />
     <ClCompile Include="..\nas\nasFileHandler.cpp" />
+    <ClCompile Include="..\nas\offLineService.cpp" />
     <ClCompile Include="..\osapi\Mutex_Linux.cpp" />
     <ClCompile Include="..\osapi\Mutex_Win32.cpp" />
     <ClCompile Include="..\osapi\Semaphore_Linux.cpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="..\nas\MsgDefine.h" />
     <ClInclude Include="..\nas\nasClient.h" />
     <ClInclude Include="..\nas\nasFileHandler.h" />
+    <ClInclude Include="..\nas\offLineService.h" />
     <ClInclude Include="..\osapi\Mutex.h" />
     <ClInclude Include="..\osapi\osapi.h" />
     <ClInclude Include="..\osapi\Semaphore.h" />

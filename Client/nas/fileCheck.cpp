@@ -419,15 +419,19 @@ string fileCheck::isExistFile(string path, string part, bool put_flag)
 		result = "No File or directory ! \n";
 		
 		// MSG_PUT 命令需要多次检测, 不能立即返回;
-		if(m_type != MSG_PUT || isClient || put_flag)
+		// MSG_MAKEDIR, MSG_MOVE, MSG_COPY 使用 offLineService类内部的 isExistFile 函数处理;
+		if(m_type != MSG_PUT && m_type != MSG_MAKEDIR && m_type != MSG_MOVE
+			&& m_type != MSG_COPY || isClient || put_flag)
 			throw result;
 	}
 	if (exist == EACCES)
 	{
 		result = "Access denied ! \n";
 
-		// MSG_PUT 命令需要多次检测, 不能立即返回;
-		if (m_type != MSG_PUT || isClient)
+		// MSG_MAKEDIR 命令需要目录不存在, 所以不返回;
+		// MSG_MAKEDIR, MSG_MOVE, MSG_COPY 使用 offLineService类内部的 isExistFile 函数处理;
+		if (m_type != MSG_PUT && m_type != MSG_MAKEDIR && m_type != MSG_MOVE
+			&& m_type != MSG_COPY || isClient || put_flag)
 			throw result;
 	}
 #else
@@ -443,7 +447,9 @@ string fileCheck::isExistFile(string path, string part, bool put_flag)
 		result = "No File or directory ! \n";
 		
 		// MSG_PUT 命令需要多次检测, 不能立即返回;
-		if(m_type != MSG_PUT || isClient || put_flag)
+		// MSG_MAKEDIR, MSG_MOVE, MSG_COPY 使用 offLineService类内部的 isExistFile 函数处理;
+		if (m_type != MSG_PUT && m_type != MSG_MAKEDIR && m_type != MSG_MOVE
+			&& m_type != MSG_COPY || isClient || put_flag)
 			throw result;
 	}
 #endif

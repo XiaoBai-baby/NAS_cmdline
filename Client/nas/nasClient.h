@@ -10,6 +10,10 @@
 #include <vector>
 using std::vector;
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 /*	nasClient
 	实现类似 FTP的服务
 */
@@ -45,8 +49,8 @@ public:
 	// 发送 put 命令;
 	void in_put(string cmdline, char* argv[128], int argc);
 
-	// 发送 rm 命令;
-	void in_rm();
+	// 发送 离线 命令;
+	void in_off_line(int code);
 
 private:
 	// 发送消息类型;

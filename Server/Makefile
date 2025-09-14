@@ -1,5 +1,5 @@
-EXE = Server.exe
-Dir = . src osapi tcpserver jsoncpp/src utility ftp
+EXE = Server.out
+Dir = . src osapi tcpserver jsoncpp/src utility nas
 
 DXX_Source = $(foreach dir, $(Dir), $(wildcard $(dir)/*.cpp))
 DXX_OBJECT = $(patsubst %.cpp, %.o, $(DXX_Source))

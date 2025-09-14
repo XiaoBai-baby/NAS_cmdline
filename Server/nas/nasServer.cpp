@@ -3,11 +3,8 @@
 // 定义全局 互斥锁 变量, 用于保护文件的完整性;
 OS_Mutex Mutex;
 
-// 判断是否有 用户 在处理文件, 用于保护文件的完整性;
-int is_using = 0;
-
-// 用于离线删除文件;
-vector<string> off_line_remove;
+// 定义离线服务对象;
+offLineService m_offLineService;
 
 nasServer::nasServer(OS_TcpSocket& recv_sock, int bufsize)
 	: m_RecvSock(recv_sock), m_buffer(bufsize), m_bufsize(bufsize)
@@ -19,17 +16,23 @@ nasServer::nasServer(OS_TcpSocket& recv_sock, int bufsize)
 	exit_OK = false;
 	login_OK = false;
 	
-	// nas根目录
+	printf("\n");
+	Init();
+
 #ifdef _WIN32
-	m_homeDir = "E://CProjects";
-	server_system = 1;					// Windows 系统;
+	server_system = 1;							// Windows 系统;
+	SetConsoleTitleA("NAS Cmdline Server");		// 更改窗口标题;
+
+	// 打开 Windows 的 'mkdir'扩展命令;
+	system("mkdir \\a\\b\\c\\d");
+	FileUtils::RemoveWindowsCharacter(50, 1);
 #else
-	m_homeDir = "/Win_share/C++服务器项目/CProjects";
 	server_system = 0;					// Linux 系统;
 #endif
 
 	m_path = "/";							// 起始目录
 	
+	m_offLineService(m_RecvSock, m_homeDir);
 	m_file(m_RecvSock, m_homeDir, server_system);
 
 	checkDirectory();
@@ -48,17 +51,23 @@ nasServer::nasServer(OS_TcpSocket& recv_sock, char* buffer, int offset, int bufs
 	exit_OK = false;
 	login_OK = false;
 
-	// nas根目录
+	printf("\n");
+	Init();
+
 #ifdef _WIN32
-	m_homeDir = "E://CProjects";
-	server_system = 1;					// Windows 系统;
+	server_system = 1;							// Windows 系统;
+	SetConsoleTitleA("NAS Cmdline Server");		// 更改窗口标题;
+
+	// 打开 Windows 的 'mkdir'扩展命令;
+	system("mkdir \\a\\b\\c\\d");
+	FileUtils::RemoveWindowsCharacter(50, 1);
 #else
-	m_homeDir = "/Win_share/C++服务器项目/CProjects";
 	server_system = 0;					// Linux 系统;
 #endif
 
 	m_path = "/";							// 起始目录
 	
+	m_offLineService(m_RecvSock, m_homeDir);
 	m_file(m_RecvSock, m_homeDir, server_system);
 
 	checkDirectory();
@@ -69,6 +78,26 @@ nasServer::~nasServer()
 	clear();
 }
 
+
+void nasServer::Init()
+{
+	// 设置 NAS 的根目录;
+	string homeDir = "";
+
+	if (homeDir != "")
+	{
+		m_homeDir = homeDir;
+	}
+	else
+	{
+		// 设置默认值, 防止系统出错;
+	#ifdef WIN32
+		m_homeDir = "C://CProjects";
+	#else
+		m_homeDir = "/CProjects";
+	#endif
+	}
+}
 
 void nasServer::startReceiveData()
 {
@@ -82,16 +111,16 @@ void nasServer::checkDirectory()
 	if (exist != 0)
 	{
 		int n = _mkdir(m_homeDir.c_str());
-		printf("Error: No nas directory or file! \n");
 	}
 #else
 	int exist = access(m_homeDir.c_str(), F_OK);
 	if (exist != 0)
 	{
 		int n = mkdir(m_homeDir.c_str(), S_IRWXU);
-		printf("Error: No nas directory or file! \n");
 	}
 #endif
+	printf("Warning: No homeDir directory has been set up. \n");
+	printf("default values have been enabled: homeDir = %s. \n\n", m_homeDir.c_str());
 }
 
 void nasServer::clear()
@@ -307,41 +336,27 @@ string nasServer::on_rm(bool off_line)
 
 	char* argv[64];
 	int argc = FileUtils::Split((char*)cmdline.c_str(), argv);
-	if (argc < 1)
+	if (argc < 2)
 	{
 		return result;
 	}
 	
-	printf("Remove the ");
+	printf("Removed the ");
 	for (int i = 1; i < argc; i++)
 	{
-		// 不同系统之间的编码转换;
-		// 注意, 为 string 赋值时, 必须将char* 转换成 const char*, 否则内存容易出错;
-		if (server_system != client_system)
-			cmdline = m_file.characterEncoding(argv[i], strlen(argv[i])).c_str();
-		else
-			cmdline = string(argv[i]).c_str();
-
-		// 删除 cmdline 末尾的"/";
-		int length = cmdline.length() - 1;
-		if(cmdline[length] == '/')
-			cmdline.erase(length, 1);
-
-		// 文件的总路径;
-		string file_path = m_homeDir + m_path + cmdline;
-		printf("\'%s\' ", cmdline.c_str());
+		string file = on_pwd(argv[i]);
+		string file_path = on_pwd(argv[i], true);
 
 		// 将整个文件路径保存, 以便后续离线删除;
 		if (off_line)
 		{
-			string path_backup = m_path + cmdline;
-			off_line_remove.push_back(path_backup);
+			string complete_path = m_homeDir + m_path + file;
+			m_offLineService.offLineRemove(complete_path);
 			continue;
 		}
 
-		Mutex.Lock();
 	#ifdef _WIN32
-		if (m_file.isDirectory(m_path, cmdline))
+		if (m_file.isDirectory(m_path, file))
 			FileUtils::rmdir(file_path);
 		else
 			DeleteFileA(file_path.c_str());
@@ -350,13 +365,159 @@ string nasServer::on_rm(bool off_line)
 		cmdline2 += file_path;
 		system(cmdline2.c_str());
 	#endif
-		Mutex.Unlock();
 	}
 
 	// 打印下载的文件;
 	printf("file (PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
 
 	return result;
+}
+
+string nasServer::on_mkdir()
+{
+	string result;
+	string cmdline(m_data);
+	
+	char* argv[128];
+	int argc = FileUtils::Split((char*)cmdline.c_str(), argv);
+	if (argc < 2)
+	{
+		return result;
+	}
+
+	printf("Created the ");
+	for (int i = 1; i < argc; i++)
+	{
+		string directory = on_pwd(argv[i], true);
+		int exist = m_offLineService.isExistFile(directory);
+		
+		// 如果目录存在, 则跳过;
+		if (exist == 0)
+			continue;
+
+	#ifdef _WIN32
+		directory = FileUtils::BackSlash(directory);
+		directory.insert(0, "mkdir ");
+	#else
+		directory.insert(0, "mkdir -p ");
+	#endif
+
+		// 执行命令;
+		system(directory.c_str());
+	}
+
+	// 打印下载的文件;
+	printf("directory (PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
+
+	return result;
+}
+
+// off_line 为 离线命令;
+string nasServer::on_mv(bool off_line)
+{
+	string result;
+	string cmdline(m_data);
+
+	char* argv[128];
+	long long argc = FileUtils::Split((char*)cmdline.c_str(), argv);
+	if (argc < 3)
+	{
+		return result;
+	}
+	
+	string file;								// 单个文件;
+	string destination_file;					// 目标文件;
+	vector<string> print_file;					// 需要打印的文件;
+	vector<string> total_file;					// 执行命令的总文件;
+	long long end_len = argc - 1;				// 目标文件的位置;
+
+	int exist = 0;
+	for (int i = 1; i < argc; i++)
+	{
+		file = on_pwd(argv[i], false);
+
+		// 获取目标文件;
+		destination_file = m_file.destinationFile(print_file, file, m_path, m_type, argc, i);
+
+		// 将文件添加到列表;
+		m_file.add_fileList(total_file, print_file, m_path, file, end_len, i);
+	}
+	
+	if (m_type == MSG_MOVE || m_type == MSG_MOVE2)
+		printf("Moved the ");
+	else if(m_type == MSG_COPY || m_type == MSG_COPY2)
+		printf("Coped the ");
+
+	// 打印文件;
+	for (int j = 0; j < end_len - 1; j++)
+	{
+		printf("\'%s\'", print_file[j].c_str());
+
+		if (j < end_len - 2)
+			printf(",");
+	}
+	printf(" to \'%s\' directory or file ", print_file[end_len - 1].c_str());
+
+	// 打印下载的文件;
+	printf("(PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
+
+	// 移动文件;
+	vector<string> off_line_service = m_file.move_copy_file(total_file, print_file, destination_file, m_type, off_line);
+
+	if(m_type == MSG_MOVE || m_type == MSG_MOVE2)
+		m_offLineService.offLineMove(off_line_service);
+	else if(m_type == MSG_COPY || m_type == MSG_COPY2)
+		m_offLineService.offLineCopy(off_line_service);
+	return result;
+}
+
+// off_line 为 离线命令;
+string nasServer::on_cp(bool off_line)
+{
+	return on_mv(off_line);
+}
+
+// all_print 为是否打印文件或目录名, 并返回全部路径;
+// 当 m_type 非 MSG_PWD时, 则返回完整的工作路径, 为辅助 on_rm, on_mkdir, on_mv, on_cp 使用;
+string nasServer::on_pwd(char* src_str, bool all_print)
+{
+	string cmdline;
+	int src_length = 0;
+	
+	if (src_str != NULL)
+	{
+		src_length = strlen(src_str);
+	}
+	else
+	{
+		cmdline = m_path;
+		src_str = (char*)cmdline.c_str();
+	}
+
+	// 不同系统之间的编码转换;
+	// 注意, 为 string 赋值时, 必须将char* 转换成 const char*, 否则内存容易出错;
+	if (server_system != client_system)
+		cmdline = m_file.characterEncoding(src_str, src_length).c_str();
+	else
+		cmdline = string(src_str);
+
+	// 删除 cmdline 末尾的"/";
+	src_length = cmdline.length() - 1;
+	if (cmdline[src_length] == '/' && src_length > 1)
+		cmdline.erase(src_length, 1);
+
+	string path;
+	if (!all_print)
+	{
+		path = cmdline;
+	}
+	else
+	{
+		printf("\'%s\' ", cmdline.c_str());
+		path = m_homeDir + m_path + cmdline;
+	}
+
+	return path;
 }
 
 string nasServer::on_get()
@@ -383,7 +544,7 @@ string nasServer::on_get()
 			printf("(PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
 		}
 	}
-	is_using--;
+	--m_offLineService;
 
 	return result;
 }
@@ -413,7 +574,7 @@ string nasServer::on_put()
 			printf("(PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
 		}
 	}
-	is_using--;
+	--m_offLineService;
 
 	return result;
 }
@@ -762,75 +923,25 @@ string nasServer::linux_Handler()
 }
 #endif
 
-int nasServer::offLineService()
-{
-	while (is_using == 0 && off_line_remove.size() > 0)
-	{
-		string cmdline = off_line_remove[0];
-		string remove_path = m_homeDir + cmdline;
-
-	#ifdef _WIN32
-		if (m_file.isDirectory("", cmdline))
-			FileUtils::rmdir(remove_path);
-		else
-			DeleteFileA(remove_path.c_str());
-	#else
-		string cmdline2 = "rm -Rf ";
-		cmdline2 += remove_path;
-		system(cmdline2.c_str());
-	#endif
-
-		off_line_remove.erase(off_line_remove.begin(), off_line_remove.begin() + 1);
-	}
-	return 0;
-}
-
 int nasServer::messageHandler(string& result, string& reason, Json::Value fileblock)
 {
-	int errorCode = 0;
-	bool off_line = false;				// 离线删除;
+	int code = JSON_ERROR;					// JSON 响应;
+	bool off_line = false;					// 离线删除;
 	string jsonreq(m_data, m_length);
 
 	switch (m_type)
 	{
 	case MSG_LOGIN:
-		Mutex.Lock();
-		try {
-			on_Login(jsonreq);
-			login_OK = true;
-			m_file(client_system);
-
-			m_RecvSock.GetPeerAddr(m_SockAddr);
-			printf("\nlogin seccussfully (PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
-			
-		#ifdef _WIN32
-			on_ls(fileblock);
-			result = FileUtils::Login_Result(fileblock).append("\n");
-		#else
-			result = FileUtils::Login_Result(fileblock).append("\n");
-			result += on_ls(fileblock);
-		#endif
-			
-			if(client_system != server_system || server_system == 1)
-				errorCode = 11;
-		}
-		catch (string e)
-		{
-			errorCode = -1;
-			reason = e;
-		}
-		Mutex.Unlock();
-		break;
-
 	case MSG_LOGIN2:
 		Mutex.Lock();
 		try {
+			// on_Login(jsonreq);			MSG_LOGIN
 			on_Login2();
 			login_OK = true;
 			m_file(client_system);
 
 			m_RecvSock.GetPeerAddr(m_SockAddr);
-			printf("\nlogin seccussfully (PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
+			printf("login seccussfully (PID: %d, %s). \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
 
 		#ifdef _WIN32
 			on_ls(fileblock);
@@ -840,12 +951,11 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 			result += on_ls(fileblock);
 		#endif
 
-			if (client_system != server_system || server_system == 1)
-				errorCode = 11;
+			code = JSON_LOGIN_AND_LIST;
 		}
 		catch (string e)
 		{
-			errorCode = -1;
+			code = JSON_ERROR;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -866,12 +976,11 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 				result = on_ls(fileblock);
 			}
 
-			if (client_system != server_system || server_system == 1)
-				errorCode = 11;
+			code = JSON_LOGIN_AND_LIST;
 		}
 		catch (string e)
 		{
-			errorCode = -1;
+			code = JSON_ERROR;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -892,12 +1001,11 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 				result = on_ll(fileblock);
 			}
 
-			if (client_system != server_system || server_system == 1)
-				errorCode = 11;
+			code = JSON_LOGIN_AND_LIST;
 		}
 		catch (string e)
 		{
-			errorCode = -1;
+			code = JSON_ERROR;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -909,11 +1017,11 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 		Mutex.Lock();
 		try {
 			result = on_cd(fileblock);
-			errorCode = 12;
+			code = JSON_CD;
 		}
 		catch (string e)
 		{
-			errorCode = -1;
+			code = JSON_ERROR;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -927,13 +1035,17 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 			if (m_length > 0)
 				result = m_file.checkFile(m_path, m_data, m_type);
 			
-			errorCode = 15;
+			code = JSON_REMOVE;
 			
-			if (is_using > 0 && is_using < 3)
+			if (m_offLineService.user_size() == 0)
+			{
+				on_rm(false);
+			}
+			else if (m_offLineService.user_size() > 0 && m_offLineService.user_size() < 3)
 			{
 				on_rm(true);
 			}
-			else if (is_using > 3)
+			else if (m_offLineService.user_size() > 3)
 			{
 				off_line = true;
 				string e = "too many users are downloading files, ";
@@ -944,9 +1056,9 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 		catch (string e)
 		{
 			if (!off_line)
-				errorCode = -1;				// 文件存在错误;
+				code = JSON_ERROR;				// 文件存在错误;
 			else
-				errorCode = 16;				// 离线删除服务;
+				code = JSON_REMOVE2;			// 离线删除服务;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -961,11 +1073,139 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 				result = m_file.checkFile(m_path, m_data, m_type);
 
 			on_rm(true);
-			errorCode = 15;
+			code = JSON_REMOVE;
 		}
 		catch (string e)
 		{
-			errorCode = -1;
+			code = JSON_ERROR;
+			reason = e;
+		}
+		Mutex.Unlock();
+		break;
+
+	case MSG_MAKEDIR:
+		if (!this->login_OK) break;
+
+		Mutex.Lock();
+		try {
+				m_file.checkFile(m_path, m_data, m_type);
+				on_mkdir();
+		}
+		catch (string e)
+		{
+			code = JSON_ERROR;
+			reason = e;
+		}
+		Mutex.Unlock();
+		break;
+
+	case MSG_MOVE:
+		if (!this->login_OK) break;
+
+		Mutex.Lock();
+
+		code = JSON_MOVE;
+
+		try {
+			m_file.checkFile(m_path, m_data, m_type);
+
+			if (m_offLineService.user_size() == 0)
+			{
+				on_mv(false);
+			}
+			else if (m_offLineService.user_size() > 0 && m_offLineService.user_size() < 3)
+			{
+				on_mv(true);
+			}
+			else if (m_offLineService.user_size() > 3)
+			{
+				off_line = true;
+				string e = "too many users are downloading files, ";
+				result = e;					// 发送客户端的数据;
+				throw(e);
+			}
+		}
+		catch (string e)
+		{
+			if (!off_line)
+				code = JSON_ERROR;				// 文件存在错误;
+			else
+				code = JSON_MOVE2;				// 离线删除服务;
+			reason = e;
+		}
+		Mutex.Unlock();
+		break;
+
+	case MSG_MOVE2:
+		if (!this->login_OK) break;
+
+		Mutex.Lock();
+		try {
+			if (m_length > 0)
+				result = m_file.checkFile(m_path, m_data, m_type);
+
+			on_mv(true);
+			code = JSON_MOVE;
+		}
+		catch (string e)
+		{
+			code = JSON_ERROR;
+			reason = e;
+		}
+		Mutex.Unlock();
+		break;
+
+	case MSG_COPY:
+		if (!this->login_OK) break;
+
+		Mutex.Lock();
+
+		code = JSON_COPY;
+
+		try {
+			m_file.checkFile(m_path, m_data, m_type);
+
+			if (m_offLineService.user_size() == 0)
+			{
+				on_cp(false);
+			}
+			else if (m_offLineService.user_size() > 0 && m_offLineService.user_size() < 3)
+			{
+				on_cp(true);
+			}
+			else if (m_offLineService.user_size() > 3)
+			{
+				off_line = true;
+				string e = "too many users are downloading files, ";
+				result = e;					// 发送客户端的数据;
+				throw(e);
+			}
+		}
+		catch (string e)
+		{
+			if (!off_line)
+				code = JSON_ERROR;				// 文件存在错误;
+			else
+				code = JSON_COPY2;				// 离线删除服务;
+			reason = e;
+		}
+		Mutex.Unlock();
+		break;
+
+	case MSG_COPY2:
+		if (!this->login_OK) break;
+
+		Mutex.Lock();
+		try {
+			if (m_length > 0)
+				result = m_file.checkFile(m_path, m_data, m_type);
+
+			on_cp(true);
+			code = JSON_COPY;
+		}
+		catch (string e)
+		{
+			code = JSON_ERROR;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -978,14 +1218,14 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 		try
 		{
 			m_file.checkFile(m_path, m_data, m_type);
-			is_using++;
+			++m_offLineService;
 
 			reason = "OK";
-			errorCode = 20;
+			code = JSON_GET;
 		}
 		catch (string e)
 		{
-			errorCode = -1;
+			code = JSON_ERROR;
 			reason = e;
 		}
 		Mutex.Unlock();
@@ -998,28 +1238,34 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 		try
 		{
 			m_file.checkFile(m_path, m_data, m_type);
-			is_using++;
+			++m_offLineService;
 
-			errorCode = -1;
+			code = JSON_ERROR;
 			reason = "Unable to upload file, because the same files exist in the directory \n";
 		}
 		catch (string e)
 		{
-			errorCode = 21;
+			code = JSON_PUT;
 			reason = "OK";
 		}
 		Mutex.Unlock();
 		break;
 
+	case MSG_PWD:
+		if (!this->login_OK) break;
+		code = JSON_PWD;
+		result = on_pwd();
+		reason = "OK";
+		break;
+
 	case MSG_EXIT:
 		if (!this->login_OK) break;
 		exit_OK = true;
-
 		break;
 		
 
 	default:
-		errorCode = -1;
+		code = JSON_ERROR;
 		reason = "----Unknown Request, Please login again !----";
 		printf("\nError: Unknown Request ! (PID: %d, %s) \n", m_SockAddr.GetPort(), FileUtils::AsTime().c_str());
 		
@@ -1028,25 +1274,30 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 		break;
 	}
 
-	return errorCode;
+	return code;
 }
 
 int nasServer::serviceHandler()
 {
 	// 处理离线服务;
-	offLineService();
+	Mutex.Lock();
+	m_offLineService.offLineHandler();
+	Mutex.Unlock();
 
 	if (m_type == MSG_GET)
 		on_get();
 	else if (m_type == MSG_PUT)
 		on_put();
-	else if (m_type == MSG_REMOVE && is_using == 0)
-		on_rm();				// 在线删除;
+	else if (m_type == MSG_REMOVE) {}
+	else if (m_type == MSG_MOVE) {}
+	else if(m_type == MSG_COPY) {}
 	else
 		return 1;
 
 	// 利用在线客户端的线程服务, 处理离线服务;
-	offLineService();
+	Mutex.Lock();
+	m_offLineService.offLineHandler();
+	Mutex.Unlock();
 	
 	string fileError = m_file.fileError;
 	if (fileError.size() <= 0 && m_type >= MSG_GET)
@@ -1083,18 +1334,19 @@ int nasServer::responseClient()
 		string result;
 		string reason = "OK";
 		Json::Value fileblock;
-		int errorCode = messageHandler(result, reason, fileblock);
+		int code = messageHandler(result, reason, fileblock);
 
 
 		// 回复JSON请求
 		Json::Value response;
 		Json::FastWriter writer;
-		response["errorCode"] = errorCode;
+		response["code"] = code;
 		response["reason"] = reason;
 		response["system"] = server_system;
+		response["again"] = result.length() > 0 ? true : false;
 		
-		// 不同系统之间使用二次发送数据;
-		if(errorCode == 11 || errorCode == 12 || errorCode == 16)				// login, ls, ll, remove
+		// 不同系统之间使用二次发送数据, 因为 jsoncpp 的格式只支持 UTF-8, 不支持 GBK;
+		if(result.length() > 0)
 			response["result"] = 0;
 		else
 			response["result"] = result;
@@ -1102,21 +1354,21 @@ int nasServer::responseClient()
 
 		// 发送数据时必须指明长度;
 		int length = jsonresp.length();
-		m_RecvSock.Send(&length, 4, false);						// 先发送4个字节的数据, 用来指明长度;
+		m_RecvSock.Send(&length, 4, false);							// 先发送4个字节的数据, 用来指明长度;
 		m_RecvSock.Send(jsonresp.c_str(), jsonresp.length(), false);
 		
-		// 重新发送一次result, 因为 jsoncpp无法完全解析中文;
-		if (errorCode == 11 || errorCode == 12 || errorCode == 16)
+		// 重新发送一次result, 因为 jsoncpp 的格式只支持 UTF-8, 不支持 GBK;
+		if (result.length() > 0)
 		{
 			length = result.length();
-			m_RecvSock.Send(&length, 4, false);					// 先发送4个字节的数据, 用来指明长度;
 
-			if(length > 0)
-				m_RecvSock.Send(result.c_str(), result.length(), false);
+			// 先发送4个字节的数据, 用来指明长度;
+			m_RecvSock.Send(&length, 4, false);
+			m_RecvSock.Send(result.c_str(), result.length(), false);
 		}
 
 		// 开始进行服务;
-		if (errorCode > 0 || off_line_remove.size() > 0)
+		if (code != JSON_ERROR || m_offLineService.user_size() > 0)
 			serviceHandler();
 	}
 

@@ -4,6 +4,7 @@
 #include "./nasUser.h"
 #include "./MsgDefine.h"
 #include "./nasFileHandler.h"
+#include "./offLineService.h"
 
 #include "../osapi/osapi.h"
 #include "../utility/utility.h"
@@ -23,6 +24,7 @@ using std::vector;
 
 #include <io.h>
 #include <direct.h>
+#include <Windows.h>
 
 #else
 #include <unistd.h>
@@ -43,6 +45,9 @@ public:
 	~nasServer();
 
 public:
+	// 初始化设置;
+	void Init();
+
 	// 开始接收任务;
 	void startReceiveData();
 
@@ -77,6 +82,18 @@ private:
 	// 处理MSG_REMOVE 消息请求;
 	string on_rm(bool off_line = false);
 
+	// 处理MSG_MAKEDIR 消息请求;
+	string on_mkdir();
+
+	// 处理MSG_MOVE 消息请求;
+	string on_mv(bool off_line = false);
+
+	// 处理MSG_COPY 消息请求;
+	string on_cp(bool off_line = false);
+
+	// 处理MSG_PWD 消息请求;
+	string on_pwd(char* src_str = 0, bool all_print = false);
+
 	// 处理MSG_GET 消息请求;
 	string on_get();
 
@@ -98,13 +115,9 @@ private:
 
 	// 返回 on_cd 消息请求的结果, 辅助 on_cd使用;
 	string handleCdResult(string directory, string last_directory, int position, bool isII);
-	
+
 	// 用于处理 Linux 系统的消息, 辅助 messageHandler使用;
 	string linux_Handler();
-	
-private:
-	// 所有离线服务的处理, 辅助 serviceHandler使用;
-	int offLineService();
 
 private:
 	// 所有消息类型的处理;
