@@ -680,7 +680,7 @@ string fileCheck::checkFile(string& path, char* data, unsigned int type)
 	#ifdef _WIN32
 		_itoa_s(maxCmdlineParameters, parameters, 32);
 	#else
-		_itoa(maxCmdlineParameters, parameters, 32);
+		sprintf(parameters, "%d", maxCmdlineParameters);
 	#endif
 
 		// 命令行的参数太多;

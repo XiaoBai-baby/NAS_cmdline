@@ -853,13 +853,6 @@ string nasServer::linux_Handler()
 	std::ifstream ifs;
 	system(cmdline.c_str());				// 自动创建文件
 	ifs.open(file.c_str());					// 只能打开文件, 无法创建文件;
-	
-
-	if (m_type == MSG_LOGIN || m_type == MSG_LOGIN2)
-	{
-		Json::Value fileblock;				// 只用于传递参数, 无实际用途;
-		result = FileUtils::Login_Result(fileblock);
-	}
 
 	string s;
 	if (m_type == MSG_CD)
@@ -905,6 +898,7 @@ string nasServer::linux_Handler()
 			}
 			else
 			{
+				// 每五个文件换一行;
 				if (count % 5 == 0 && count != 0)
 					result.append("\n");
 				
@@ -1375,7 +1369,7 @@ int nasServer::responseClient()
 		response["system"] = server_system;
 		response["again"] = result.length() > 0 ? true : false;
 		response["maxUploadUnit"] = (int) m_file.maxUploadUnit;
-		response["maxUploadSize"] = (long long) m_file.maxUploadSize;
+		response["maxUploadSize"] = (double) m_file.maxUploadSize;
 		response["maxCmdlineParameters"] = m_file.maxCmdlineParameters;
 
 		responseHandler(result, response);

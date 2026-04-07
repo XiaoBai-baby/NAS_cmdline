@@ -312,13 +312,12 @@ void nasClient::start(const char* username,const char* password)
 
 	printf("\n\nlogin: current time as %s from ", FileUtils::AsTime().c_str());
 	printf("%s .\n\n", address.GetIp_str().c_str());
-
-#ifdef _WIN32
+	
 	const char* root = "[root@localhost";
+#ifdef _WIN32
 	const char* root2 = "]#  ";
 #else
-	const char* root = "<root@";
-	const char* root2 = ">  ";
+	const char* root2 = "]# ";
 #endif
 	
 	while (true)
