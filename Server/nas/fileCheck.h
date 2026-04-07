@@ -34,7 +34,7 @@ class fileCheck
 public:
 	fileCheck();
 
-	fileCheck(OS_TcpSocket& Sock, string homeDir, char local_system, bool isClient = false);
+	fileCheck(OS_TcpSocket& Sock, string homeDir, int maxParameters, char local_system, bool isClient = false);
 
 public:
 	// 该模板函数 用于类的二次初始化, 以确认客户端的操作系统;
@@ -47,13 +47,13 @@ public:
 	void operator()(string homeDir);
 
 	// 该模板函数 用于类的初始化;
-	void operator()(OS_TcpSocket& Sock, string homeDir, char local_system, bool isClient);
+	void operator()(OS_TcpSocket& Sock, string homeDir, int maxParameters, char local_system, bool isClient);
 
 public:
 	// 处理MSG_LIST 消息请求, 辅助 checkResult使用;
 	string on_ls(Json::Value& jresult, string& path, bool notDir = false);
 
-	// 处理MSG_LIST2 消息请求, 辅助 checkResult使checkCdCommand用;
+	// 处理MSG_LIST2 消息请求, 辅助 checkResult, checkCdCommand使用;
 	string on_ll(Json::Value& jresult, string& path, bool notDir = false);
 
 	// 在Linux下, 处理MSG_LIST, MSG_LIST2 消息请求, 辅助 on_ls使用;
@@ -101,6 +101,9 @@ public:
 public:
 	string m_homeDir;					// 根目录所在的位置
 	unsigned int m_type;				// 接收消息的类型
+
+private:
+	int maxCmdlineParameters;			// 命令行参数的最大数量;
 
 private:
 	OS_TcpSocket Sock;					// 连接客户端的socket地址

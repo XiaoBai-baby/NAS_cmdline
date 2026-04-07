@@ -5,15 +5,15 @@ Perform NAS operations through the command line.
 Use common Linux commands to download and upload files, support TCP/IP protocol transmission, and simultaneous access files by multiple users. it can be run on both Windows and Linux systems, also data can be shared between them and can be operated in Chinese.
 
 ## Init
-In the "nas/nasServer.cpp" file, locate the "Init" function and set the "homeDir" string, that is the root directory of NAS.
+In the "Server/nas/transferParameter.h" file, locate the "transferParameter" structure and set the "homeDir" string, that is the root directory of NAS.
 ```
-void nasServer::Init()
+struct transferParameters
 {
 	// 设置 NAS 的根目录;
 	string homeDir = "";
 
 	......
-}
+};
 ```
 
 ## Compile

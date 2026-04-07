@@ -41,6 +41,10 @@ void nasClient::sendData(unsigned short type, const char* username, const char* 
 		int error_length = e.find("Error: ");
 		if (error_length < 0)
 			error_length = e.find("bad json format!");
+		
+		// 提示重新输入;
+		if (error_length >= 0)
+			printf("please input again. \n\n");
 
 		if (error_length >= 0)
 		{
@@ -303,6 +307,12 @@ void nasClient::start(const char* username,const char* password)
 	char cmdline[256];
 	char cmdline2[256];
 
+	OS_SockAddr address;
+	m_SendSock.GetLocalAddr(address);
+
+	printf("\n\nlogin: current time as %s from ", FileUtils::AsTime().c_str());
+	printf("%s .\n\n", address.GetIp_str().c_str());
+
 #ifdef _WIN32
 	const char* root = "[root@localhost";
 	const char* root2 = "]#  ";
@@ -310,21 +320,27 @@ void nasClient::start(const char* username,const char* password)
 	const char* root = "<root@";
 	const char* root2 = ">  ";
 #endif
-
+	
 	while (true)
 	{
+		string cmdline_prompt = root + m_path + root2;
 		std::cout << root << m_path << root2;
 		
-	#ifdef _WIN32
-		gets_s(cmdline);
-	#else
-		fgets(cmdline, 256, stdin);
+		nasCmdlineEngline cmdlineEngline(m_path_cmdline, cmdline_prompt);
+		#ifdef _WIN32
+			// gets_s(cmdline);
+			string cmd2 = cmdlineEngline.start(cmdline_backup);
+			strcpy_s(cmdline, cmd2.c_str());
+			// continue;
+		#else
+			fgets(cmdline, 256, stdin);
+
+			// 在Linux下, fgets的缓冲区 需要手动将末尾置为 0;
+			int length = strlen(cmdline);
+			cmdline[length - 1] = 0;
+		#endif
 		
-		// 在Linux下, fgets的缓冲区 需要手动将末尾置为 0;
-		int length = strlen(cmdline);
-		cmdline[length - 1] = 0;
-	#endif
-		
+		// 检查 cmdline 的数量;
 		int cmdline_length = strlen(cmdline);
 		if (cmdline_length == 0) continue;
 		if (cmdline_length == 256)
@@ -483,7 +499,7 @@ bool nasClient::checkCmdine(char* cmdline, int cmdline_length)
 {
 	// 用于检查是否有错误命令;
 	bool error_flag = false;
-	
+
 	// 将全部 '\' 转换成 '/' 统一处理;
 	for (int i = 0; i < cmdline_length; i++)
 	{
@@ -544,11 +560,22 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 	char system = jsonResponse["system"].asInt();
 	string result = jsonResponse["result"].asString();
 	bool response_again = jsonResponse["again"].asBool();
-	
+
+	// 传输参数;
+	long int maxUploadUnit = 0;
+	long long maxUploadSize = 0;
+	int maxCmdlineParameters = 0;
+
+	if (!is_login)
+	{
+		maxUploadUnit = jsonResponse["maxUploadUnit"].asInt();
+		maxUploadSize = jsonResponse["maxUploadSize"].asInt64();
+		maxCmdlineParameters = jsonResponse["maxCmdlineParameters"].asInt();
+	}
+
 	char buf[1024 * 6] = {0};				// 接收应答的缓存;
 	int response_length = 0;				// 接收应答的长度;
 	string character;						// 编码转换的结果;
-	bool is_login = false;					// 是否成功登录;  
 
 	// 二次接收响应数据;
 	if (response_again)
@@ -558,13 +585,18 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 	switch (code)
 	{
 	case JSON_PWD:
-	case JSON_LOGIN_AND_LIST:					// 不同系统的 login, ls, ll
+	case JSON_LOGIN_AND_LIST:
+
 		// 登录成功, 获取服务端的系统;
 		if (!is_login)
 		{
 			is_login = true;
 			server_system = system;
 			m_file(system);
+			m_file.maxUploadUnit = maxUploadUnit;
+			m_file.maxUploadSize = maxUploadSize;
+			m_file.maxCmdlineParameters = maxCmdlineParameters;
+			FileUtils::Login_Result();
 		}
 
 		if (response_length <= 0)
@@ -574,10 +606,15 @@ void nasClient::showResponse(Json::Value& jsonResponse)
 		if (client_system != server_system && response_again)
 		{
 			character = m_file.characterEncoding(buf, response_length);
+
+			if(reason == "OK")
+				m_path_cmdline = character;
 			throw string(character);
 		}
 		else if(response_again)
 		{
+			if (reason == "OK")
+				m_path_cmdline = buf;
 			throw string(buf);
 		}
 		else
@@ -784,7 +821,6 @@ int nasClient::requestServer(unsigned short type, const char* username, const ch
 	buf[response_length] = 0;			// 添加字符串的终止符
 
 
-
 	// 解析JSON请求的应答
 	string response(buf, response_length);
 	Json::Reader jsonReader;
@@ -792,7 +828,7 @@ int nasClient::requestServer(unsigned short type, const char* username, const ch
 	if (!jsonReader.parse(response, jsonResponse, false))
 	{
 		jsonResponse.clear();				// 防止段错误;
-		throw string("bad json format! \n");
+		throw string("bad json format! ");
 	}
 
 	// 显示和处理 服务端的所有响应;

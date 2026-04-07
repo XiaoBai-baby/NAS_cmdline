@@ -5,6 +5,7 @@
 #include "./MsgDefine.h"
 #include "./nasFileHandler.h"
 #include "./offLineService.h"
+#include "./nasCmdlineEngine.h"
 
 #include "../osapi/osapi.h"
 #include "../utility/utility.h"
@@ -32,6 +33,7 @@ using std::vector;
 
 #endif
 
+
 /*	nasServer
 	实现类似 NAS 的服务
 */
@@ -45,17 +47,14 @@ public:
 	~nasServer();
 
 public:
-	// 初始化设置;
-	void Init();
-
-	// 开始接收任务;
-	void startReceiveData();
-
-	// 检查 NAS目录是否存在;
-	void checkDirectory();
-
 	// 清空数据;
 	void clear();
+
+	// 启动服务;
+	void start();
+
+	// 检查 NAS目录是否存在;
+	void checkDirectory(string directory = "", int _exist = 0);
 
 private:
 	// 接收消息类型;
@@ -126,6 +125,9 @@ private:
 	// 所有服务类型的处理;
 	int serviceHandler();
 	
+	// 发送响应数据;
+	int responseHandler(string& result, Json::Value& response);
+
 	// 响应客户端操作;
 	int responseClient();
 
@@ -134,34 +136,36 @@ private:
 	int ReceiveN(void* buf, int count, int timeout = 0);
 	
 private:
-	string m_homeDir;				// 根目录所在的位置
-	string m_path;					// 用户的相对目录
+	string m_homeDir;					// 根目录所在的位置
+	string m_path;						// 用户的相对目录
 
-	string username;				// 客户端的用户名
-	string password;				// 客户端的密码
+	string username;					// 客户端的用户名
+	string password;					// 客户端的密码
 
 private:
-	bool login_OK;					// 登录是否成功
-	bool exit_OK;					// 退出是否成功
+	bool login_OK;						// 登录是否成功
+	bool exit_OK;						// 退出是否成功
 	
-	char client_system;				// 判断客户端的系统
-	char server_system;				// 判断服务端的系统
+	char client_system;					// 判断客户端的系统
+	char server_system;					// 判断服务端的系统
 
 private:
-	char* m_data;					// 接收消息的数据
-	unsigned int m_type;			// 接收消息的类型
-	unsigned int m_length;			// 接收消息的数据长度
+	char* m_data;						// 接收消息的数据
+	unsigned int m_type;				// 接收消息的类型
+	unsigned int m_length;				// 接收消息的数据长度
+	unsigned int m_maxUploadSize;		// 最大文件上传大小;
 
 private:
-	int m_bufsize;					// 接收缓冲区大小
-	ByteBuffer m_buffer;			// 缓存数据的字节编码器
-	nasUser m_user;					// 存放所有用户的信息
-	FileHandler m_file;				// 操作文件的文件处理器
+	int m_bufsize;						// 接收缓冲区大小
+	ByteBuffer m_buffer;				// 缓存数据的字节编码器
+	nasUser m_user;						// 存放所有用户的信息
+	FileHandler m_file;					// 操作文件的文件处理器
+	nasCmdlineEngline m_cmdline;		// 命令行引擎;
 
 private:
-	OS_Mutex m_Mutex;				// 控制接收数据的互斥锁
-	OS_TcpSocket m_RecvSock;		// 连接客户端的socket地址
-	OS_SockAddr m_SockAddr;			// 客户端的IP地址
+	OS_Mutex m_Mutex;					// 控制接收数据的互斥锁
+	OS_TcpSocket m_RecvSock;			// 连接客户端的socket地址
+	OS_SockAddr m_SockAddr;				// 客户端的IP地址
 };
 
 #endif

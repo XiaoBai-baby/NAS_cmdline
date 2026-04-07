@@ -7,7 +7,7 @@
 #include "../nas/fileCheck.h"
 #include "../utility/FileUtils.h"
 
-// STL Ä£°å
+// STL æ¨¡æ¿
 #include <vector>
 #include <string>
 
@@ -15,8 +15,8 @@ using std::vector;
 using std::string;
 
 /* offLineService
-	ÀëÏß·şÎñÆ÷, ±ØĞë¶¨ÒåÔÚÈ«¾Ö±äÁ¿ÉÏ, ²¢ÅäºÏ¶ş´Î³õÊ¼»¯Ê¹ÓÃ;
-	×¢Òâ, ²»¿ÉÒÔ½«ÆäÉùÃ÷Îª staticÀàĞÍ, Õâ½«Ê¹±äÁ¿µÄ¶¨Òå·¶Î§ÏŞÖÆÎªµ±Ç°¶ÔÏóÎÄ¼ş, ²¢ÔÊĞí¶à¸öÎÄ¼ş¸±±¾Í¬Ê±´æÔÚ;
+	ç¦»çº¿æœåŠ¡å™¨, å¿…é¡»å®šä¹‰åœ¨å…¨å±€å˜é‡ä¸Š, å¹¶é…åˆäºŒæ¬¡åˆå§‹åŒ–ä½¿ç”¨;
+	æ³¨æ„, ä¸å¯ä»¥å°†å…¶å£°æ˜ä¸º staticç±»å‹, è¿™å°†ä½¿å˜é‡çš„å®šä¹‰èŒƒå›´é™åˆ¶ä¸ºå½“å‰å¯¹è±¡æ–‡ä»¶, å¹¶å…è®¸å¤šä¸ªæ–‡ä»¶å‰¯æœ¬åŒæ—¶å­˜åœ¨;
 */
 class offLineService
 {
@@ -26,11 +26,11 @@ public:
 	~offLineService();
 
 public:
-	// ÀàµÄ¶ş´Î³õÊ¼»¯, ÓÃÓÚ½âËøÈ«²¿µÄÀëÏß·şÎñ;
+	// ç±»çš„äºŒæ¬¡åˆå§‹åŒ–, ç”¨äºè§£é”å…¨éƒ¨çš„ç¦»çº¿æœåŠ¡;
 	void operator()(OS_TcpSocket sock, string homeDir);
 
 public:
-	// ÀàµÄËãÊıÔËËã·û;
+	// ç±»çš„ç®—æ•°è¿ç®—ç¬¦;
 	void operator++();
 	void operator--();
 
@@ -41,51 +41,51 @@ public:
 	int operator-(int i);
 
 public:
-	// Ìí¼ÓÀëÏßÒÆ¶¯ÎÄ¼ş;
+	// æ·»åŠ ç¦»çº¿ç§»åŠ¨æ–‡ä»¶;
 	void offLineMove(vector<string>& move);
 
-	// Ìí¼ÓÀëÏß¿½±´ÎÄ¼ş;
+	// æ·»åŠ ç¦»çº¿æ‹·è´æ–‡ä»¶;
 	void offLineCopy(vector<string>& copy);
 
-	// Ìí¼ÓÀëÏßÉ¾³ıÎÄ¼ş;
+	// æ·»åŠ ç¦»çº¿åˆ é™¤æ–‡ä»¶;
 	void offLineRemove(string complete_path);
 
 public:
-	// ·µ»ØÀëÏß·şÎñ´¦ÀíµÄÊıÁ¿;
+	// è¿”å›ç¦»çº¿æœåŠ¡å¤„ç†çš„æ•°é‡;
 	int size();
 
-	// ·µ»ØÔÚÏß·şÎñ´¦ÀíµÄÊıÁ¿;
+	// è¿”å›åœ¨çº¿æœåŠ¡å¤„ç†çš„æ•°é‡;
 	int user_size();
 
 public:
-	// ÅĞ¶ÏÊÇ·ñÎªÄ¿Â¼, ¸¨Öú offLineHandler, move_copy_fileÊ¹ÓÃ;
+	// åˆ¤æ–­æ˜¯å¦ä¸ºç›®å½•, è¾…åŠ© offLineHandler, move_copy_fileä½¿ç”¨;
 	bool isDirectory(string complete_path);
 
-	// ÅĞ¶ÏÎÄ¼ş»òÄ¿Â¼ÊÇ·ñ´æÔÚ, ¸¨Öú destinationFile, on_mkdir, on_mv, on_cpÊ¹ÓÃ;
+	// åˆ¤æ–­æ–‡ä»¶æˆ–ç›®å½•æ˜¯å¦å­˜åœ¨, è¾…åŠ© destinationFile, on_mkdir, on_mv, on_cpä½¿ç”¨;
 	int isExistFile(string complete_path);
 
-	// ´´½¨»ò É¾³ıÁÙÊ±ÎÄ¼ş, ÓÃÀ´±£´æÃüÁîĞĞµÄ²Ù×÷½á¹û, ¸¨Öú offLineHandler, MoveDirectoryÊ¹ÓÃ;
+	// åˆ›å»ºæˆ– åˆ é™¤ä¸´æ—¶æ–‡ä»¶, ç”¨æ¥ä¿å­˜å‘½ä»¤è¡Œçš„æ“ä½œç»“æœ, è¾…åŠ© offLineHandler, MoveDirectoryä½¿ç”¨;
 	string temporaryFile(string rm_cmdout = "");
 
 public:
-	// ËùÓĞÀëÏß·şÎñµÄ´¦Àí, ¸¨Öú serviceHandlerÊ¹ÓÃ;
+	// æ‰€æœ‰ç¦»çº¿æœåŠ¡çš„å¤„ç†, è¾…åŠ© serviceHandlerä½¿ç”¨;
 	int offLineHandler();
 
 public:
-	int is_using;							// ÔÚÏß·şÎñ´¦ÀíµÄÊıÁ¿;
-	int off_line_number;					// ÀëÏß·şÎñ´¦ÀíµÄÊıÁ¿;
+	int is_using;							// åœ¨çº¿æœåŠ¡å¤„ç†çš„æ•°é‡;
+	int off_line_number;					// ç¦»çº¿æœåŠ¡å¤„ç†çš„æ•°é‡;
 
 private:
-	vector<string> off_line_remove;			// ÓÃÓÚÀëÏßÉ¾³ıÎÄ¼ş;
-	vector<string> off_line_move;			// ÓÃÓÚÀëÏßÒÆ¶¯ÎÄ¼ş;
-	vector<string> off_line_copy;			// ÓÃÓÚÀëÏß¸´ÖÆÎÄ¼ş;
+	vector<string> off_line_remove;			// ç”¨äºç¦»çº¿åˆ é™¤æ–‡ä»¶;
+	vector<string> off_line_move;			// ç”¨äºç¦»çº¿ç§»åŠ¨æ–‡ä»¶;
+	vector<string> off_line_copy;			// ç”¨äºç¦»çº¿å¤åˆ¶æ–‡ä»¶;
 	
 private:
-	string m_homeDir;						// ¸ùÄ¿Â¼ËùÔÚµÄÎ»ÖÃ
+	string m_homeDir;						// æ ¹ç›®å½•æ‰€åœ¨çš„ä½ç½®
 
 private:
-	OS_TcpSocket Sock;						// Á¬½Ó¿Í»§¶ËµÄsocketµØÖ·
-	fileCheck m_fileCheck;					// ¼ì²éÎÄ¼ş»òÄ¿Â¼
+	OS_TcpSocket Sock;						// è¿æ¥å®¢æˆ·ç«¯çš„socketåœ°å€
+	fileCheck m_fileCheck;					// æ£€æŸ¥æ–‡ä»¶æˆ–ç›®å½•
 };
 
 #endif

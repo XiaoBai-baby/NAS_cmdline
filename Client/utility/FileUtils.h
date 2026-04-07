@@ -8,9 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "../osapi/Thread.h"
 #include "../jsoncpp/include/json.h"
 
 using std::list;
+using std::vector;
 using std::string;
 
 #ifdef _WIN32
@@ -29,11 +32,11 @@ struct FileEntry
 {
 	FileEntry() :isDirectory(false), fileSize(0) {}
 	
-	string fileName;		// 文件名
-	bool isDirectory;		// 是否为目录
-	long long fileSize;		// 文件大小
-	long long filetime;		// 文件时间
-	int fileMode;			// 文件属性
+	string fileName;			// 文件名
+	bool isDirectory;			// 是否为目录
+	long long fileSize;			// 文件大小
+	long long filetime;			// 文件时间
+	int fileMode;				// 文件属性
 };
 
 typedef list<FileEntry> FileEntryList;			// 存放文件信息的链表
@@ -82,12 +85,9 @@ public:
 	// 将 '/'字符转换成 '\\', 用于执行 Windows CMD命令;
 	static string BackSlash(const string dir);
 
-	// 删除 Windows 命令行的字符;
-	static void RemoveWindowsCharacter(int number, int line_offset = 0);
-
 public:
 	// 登录成功的返回结果;
-	static string Login_Result(Json::Value jsonlist);
+	static void Login_Result();
 	
 	// 'ls'命令的返回结果;
 	static string List_Result(Json::Value jsonlist, string& result);

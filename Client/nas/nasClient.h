@@ -3,11 +3,14 @@
 
 #include "./MsgDefine.h"
 #include "./nasFileHandler.h"
+#include "./nasCmdlineEngine.h"
+#include "./keyboardShortcuts.h"
 #include "../osapi/osapi.h"
 #include "../utility/utility.h"
 #include "../jsoncpp/include/json.h"
 
 #include <vector>
+#include <iostream>
 using std::vector;
 
 #ifdef _WIN32
@@ -15,7 +18,7 @@ using std::vector;
 #endif
 
 /*	nasClient
-	实现类似 FTP的服务
+	实现类似 NAS 服务
 */
 class nasClient
 {
@@ -74,7 +77,12 @@ private:
 
 private:
 	bool is_login;						// 判断登录成功
+
 	string m_cmdline;					// 保存命令行的命令
+	string m_path_cmdline;				// 保存相对目录里的文件
+
+private:
+	vector<string> cmdline_backup;		// 命令行的历史命令
 
 private:
 	OS_TcpSocket m_SendSock;			// 客户端的socket地址

@@ -8,7 +8,7 @@ FileHandler::FileHandler() : windows_transfer(false)
 }
 
 FileHandler::FileHandler(OS_TcpSocket sock, string homeDir, char local_system, bool isClient, int size)
-	: m_fileCheck(Sock, homeDir, local_system, isClient)
+	: m_fileCheck(Sock, homeDir, maxCmdlineParameters, local_system, isClient)
 {
 	FileHandler(sock, homeDir, size);
 #ifdef _WIN32
@@ -62,7 +62,7 @@ void FileHandler::operator()(OS_TcpSocket sock, string homeDir, char local_syste
 	fileSize = 0;
 	
 	offLine(sock, homeDir);
-	m_fileCheck(sock, homeDir, local_system, isClient);
+	m_fileCheck(sock, homeDir, maxCmdlineParameters, local_system, isClient);
 
 	cmdline_count = 0;
 	Sock = sock;
@@ -655,7 +655,7 @@ void FileHandler::sendDirectory(Json::Value& jresult, string& path, string& part
 	Mutex.Unlock();
 
 	// 防止文件过多, 超过存放文件的缓冲区;
-	if (jresult.size() > 1023)
+	if (jresult.size() > maxUploadUnit)
 	{
 		directory_distances == 0;
 		fileError = "Failed to upload file, too many files have been uploaded or downloaded, \
@@ -782,15 +782,110 @@ string FileHandler::characterEncoding(char* src_str, int src_length)
 	return m_fileCheck.characterEncoding(src_str, src_length, false);
 }
 
+void FileHandler::checkSingleFile(string path, string part)
+{
+	// 打开文件;
+	FILE* fp = NULL;
+#ifdef _WIN32
+	fopen_s(&fp, (m_homeDir + path + part).c_str(), "rb");
+#else
+	fp = fopen((m_homeDir + path + part).c_str(), "rb");
+#endif
+
+	if (fp == NULL)
+	{
+		fileError = "reason: failed to upload file, unable to create file . \n";
+		return;
+	}
+
+	fseek(fp, 0, SEEK_END);
+	unsigned int size = ftell(fp);
+	fclose(fp);
+
+	if (size > maxUploadSize)
+		fileError = "reason: failed to upload file, unable to create file . \n";
+}
+
+void FileHandler::checkDirectory(string path, string part, bool isDirectory)
+{
+	// 将 part 加到 path 中, 方便后续调用;
+	Json::Value jresult;
+	path += part;
+	if (part[part.length() - 1] != '/')						// path 尾数加上 '/';
+		path += "/";
+
+	m_fileCheck.on_ls(jresult, path, isDirectory);
+
+	// 防止文件过多, 超过存放文件的缓冲区;
+	if (jresult.size() > maxUploadUnit)
+	{
+		fileError = "reason: failed to upload file, too many files have been uploaded or downloaded, \
+			the number of files cannot be greater than 1024 . \n";
+		return;
+	}
+	
+	Json::Value jresult2;
+	for (int i = 0; i < jresult.size(); i++)
+	{
+		// 判断是否为目录;
+		bool isDirectory = jresult[i]["isDir"].asBool();
+		
+		if (!isDirectory)
+			checkSingleFile(path, jresult[i]["fileName"].asCString());
+		else
+			checkDirectory(path, jresult[i]["fileName"].asCString(), isDirectory);
+	}
+}
+
+void FileHandler::checkFileSize(OS_Mutex& Mutex, char** argv, int argc)
+{
+	// 客户端使用;
+	if (!m_fileCheck.isClient)
+		return;
+
+	string path;
+	for (int i = 1; i < argc; i++)
+	{
+		// 文件大小超标, 结束传输;
+		if (fileError.size() > 0)
+			return;
+
+		string part;
+
+		// 获取文件;
+		if (argv[0] != 0)
+			part = m_fileCheck.characterEncoding(argv[i], strlen(argv[i]), true);
+		else
+			part = argv[i];					// 注意, 只有命令行的子命令才可以进行 字符串的转换;
+
+		Mutex.Lock();
+		// 判断是否为目录;
+		bool isDir = m_fileCheck.isDirectory(path, part);
+		if (isDir)
+			checkDirectory(path, part);
+		else
+			checkSingleFile(path, part);
+		Mutex.Unlock();
+	}
+}
+
 void FileHandler::uploadFile(string path, char** argv, int argc, OS_Mutex& Mutex)
 {
 	// 单个子命令;
 	string part;
 
+	int i = 1;
 	char* argv2[1024];						// 存放文件, 注意 argv2不可以小于文件的数量;
 	Json::Value jresult;
 
-	for (int i = 1; i < argc; i++)
+	fileError.clear();
+	checkFileSize(Mutex, argv, argc);
+
+	// 文件大小超标, 结束传输;
+	if (fileError.size() > 0)
+		i = argc;
+
+	for (; i < argc; i++)
 	{
 		// 上传文件之前的处理;
 		uploadHandler(path, argv, i);

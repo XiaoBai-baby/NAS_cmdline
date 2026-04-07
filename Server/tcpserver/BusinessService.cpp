@@ -9,7 +9,7 @@
 int TcpServiceTask::BusinessService()
 {	
 	nasServer nas(m_clientSock, (char*)m_buf, 0, m_bufsize);
-	nas.startReceiveData();
+	nas.start();
 
 	return 0;
 }

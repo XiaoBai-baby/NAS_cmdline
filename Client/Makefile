@@ -1,4 +1,4 @@
-EXE = Client.out
+EXE = NAS_Cmdline.out
 Dir = . src osapi tcpserver jsoncpp/src utility nas
 
 DXX_Source = $(foreach dir, $(Dir), $(wildcard $(dir)/*.cpp))

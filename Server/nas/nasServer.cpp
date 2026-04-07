@@ -16,8 +16,9 @@ nasServer::nasServer(OS_TcpSocket& recv_sock, int bufsize)
 	exit_OK = false;
 	login_OK = false;
 	
+	// 设置 NAS 的根目录;
+	m_homeDir = m_file.homeDir;
 	printf("\n");
-	Init();
 
 #ifdef _WIN32
 	server_system = 1;							// Windows 系统;
@@ -25,7 +26,7 @@ nasServer::nasServer(OS_TcpSocket& recv_sock, int bufsize)
 
 	// 打开 Windows 的 'mkdir'扩展命令;
 	system("mkdir \\a\\b\\c\\d");
-	FileUtils::RemoveWindowsCharacter(50, 1);
+	m_cmdline.removeWindowsCharacter(50, 1);
 #else
 	server_system = 0;					// Linux 系统;
 #endif
@@ -51,8 +52,9 @@ nasServer::nasServer(OS_TcpSocket& recv_sock, char* buffer, int offset, int bufs
 	exit_OK = false;
 	login_OK = false;
 
+	// 设置 NAS 的根目录;
+	m_homeDir = m_file.homeDir;
 	printf("\n");
-	Init();
 
 #ifdef _WIN32
 	server_system = 1;							// Windows 系统;
@@ -60,7 +62,7 @@ nasServer::nasServer(OS_TcpSocket& recv_sock, char* buffer, int offset, int bufs
 
 	// 打开 Windows 的 'mkdir'扩展命令;
 	system("mkdir \\a\\b\\c\\d");
-	FileUtils::RemoveWindowsCharacter(50, 1);
+	m_cmdline.removeWindowsCharacter(50, 1);
 #else
 	server_system = 0;					// Linux 系统;
 #endif
@@ -78,55 +80,55 @@ nasServer::~nasServer()
 	clear();
 }
 
-
-void nasServer::Init()
+void nasServer::clear()
 {
-	// 设置 NAS 的根目录;
-	string homeDir = "";
-
-	if (homeDir != "")
-	{
-		m_homeDir = homeDir;
-	}
-	else
-	{
-		// 设置默认值, 防止系统出错;
-	#ifdef WIN32
-		m_homeDir = "C://CProjects";
-	#else
-		m_homeDir = "/CProjects";
-	#endif
-	}
+	m_type = 0;
+	m_length = 0;
 }
 
-void nasServer::startReceiveData()
+void nasServer::start()
 {
 	responseClient();
 }
 
-void nasServer::checkDirectory()
+void nasServer::checkDirectory(string directory, int _exist)
 {
+	// 如果没有目录 或目录错误, 则设置默认目录;
+	if (_exist != 0)
+	{
+	#ifdef _WIN32
+		m_homeDir = "C://CProjects";
+		int n = _mkdir(m_homeDir.c_str());
+	#else
+		m_homeDir = "/CProjects";
+		int n = mkdir(m_homeDir.c_str(), S_IRWXU);
+	#endif
+		return;
+	}
+
+	/* 检查目录是否存在 */
+	int exist = 0;
 #ifdef _WIN32
-	int exist = _access_s(m_homeDir.c_str(), 0);
+	exist = _access_s(m_homeDir.c_str(), 0);
 	if (exist != 0)
 	{
 		int n = _mkdir(m_homeDir.c_str());
 	}
 #else
-	int exist = access(m_homeDir.c_str(), F_OK);
+	exist = access(m_homeDir.c_str(), F_OK);
 	if (exist != 0)
 	{
 		int n = mkdir(m_homeDir.c_str(), S_IRWXU);
 	}
 #endif
-	printf("Warning: No homeDir directory has been set up. \n");
-	printf("default values have been enabled: homeDir = %s. \n\n", m_homeDir.c_str());
-}
-
-void nasServer::clear()
-{
-	m_type = 0;
-	m_length = 0;
+	
+	// 设置默认目录, 防止系统出错;
+	if (exist != 0)
+	{
+		checkDirectory("NAS_cmdline", 1);
+		printf("Warning: No homeDir directory has been set up. \n");
+		printf("default values have been enabled: homeDir = %s. \n\n", m_homeDir.c_str());
+	}
 }
 
 
@@ -945,9 +947,9 @@ int nasServer::messageHandler(string& result, string& reason, Json::Value filebl
 
 		#ifdef _WIN32
 			on_ls(fileblock);
-			result = FileUtils::Login_Result(fileblock).append("\n");
+			FileUtils::List_Result(fileblock, result);
 		#else
-			result = FileUtils::Login_Result(fileblock).append("\n");
+			FileUtils::List_Result(fileblock, result);
 			result += on_ls(fileblock);
 		#endif
 
@@ -1317,6 +1319,35 @@ int nasServer::serviceHandler()
 	return 0;
 }
 
+int nasServer::responseHandler(string& result, Json::Value& response)
+{
+	Json::FastWriter writer;
+
+	// 不同系统之间使用二次发送数据, 因为 jsoncpp 的格式只支持 UTF-8, 不支持 GBK;
+	if (result.length() > 0)
+		response["result"] = 0;
+	else
+		response["result"] = result;
+	std::string jsonresp = writer.write(response);
+
+	// 发送数据时必须指明长度;
+	int length = jsonresp.length();
+	m_RecvSock.Send(&length, 4, false);							// 先发送4个字节的数据, 用来指明长度;
+	m_RecvSock.Send(jsonresp.c_str(), jsonresp.length(), false);
+
+	// 重新发送一次result, 因为 jsoncpp 的格式只支持 UTF-8, 不支持 GBK;
+	if (result.length() > 0)
+	{
+		length = result.length();
+
+		// 先发送4个字节的数据, 用来指明长度;
+		m_RecvSock.Send(&length, 4, false);
+		m_RecvSock.Send(result.c_str(), result.length(), false);
+	}
+
+	return 0;
+}
+
 int nasServer::responseClient()
 {
 	// 按封包方式接收
@@ -1339,33 +1370,15 @@ int nasServer::responseClient()
 
 		// 回复JSON请求
 		Json::Value response;
-		Json::FastWriter writer;
 		response["code"] = code;
 		response["reason"] = reason;
 		response["system"] = server_system;
 		response["again"] = result.length() > 0 ? true : false;
-		
-		// 不同系统之间使用二次发送数据, 因为 jsoncpp 的格式只支持 UTF-8, 不支持 GBK;
-		if(result.length() > 0)
-			response["result"] = 0;
-		else
-			response["result"] = result;
-		std::string jsonresp = writer.write(response);
+		response["maxUploadUnit"] = (int) m_file.maxUploadUnit;
+		response["maxUploadSize"] = (long long) m_file.maxUploadSize;
+		response["maxCmdlineParameters"] = m_file.maxCmdlineParameters;
 
-		// 发送数据时必须指明长度;
-		int length = jsonresp.length();
-		m_RecvSock.Send(&length, 4, false);							// 先发送4个字节的数据, 用来指明长度;
-		m_RecvSock.Send(jsonresp.c_str(), jsonresp.length(), false);
-		
-		// 重新发送一次result, 因为 jsoncpp 的格式只支持 UTF-8, 不支持 GBK;
-		if (result.length() > 0)
-		{
-			length = result.length();
-
-			// 先发送4个字节的数据, 用来指明长度;
-			m_RecvSock.Send(&length, 4, false);
-			m_RecvSock.Send(result.c_str(), result.length(), false);
-		}
+		responseHandler(result, response);
 
 		// 开始进行服务;
 		if (code != JSON_ERROR || m_offLineService.user_size() > 0)

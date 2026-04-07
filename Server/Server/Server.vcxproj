@@ -80,9 +80,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>NAS_Cmdline Server</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>NAS_Cmdline Server</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -149,6 +151,8 @@
     <ClCompile Include="..\jsoncpp\src\json_writer.cpp" />
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\nas\fileCheck.cpp" />
+    <ClCompile Include="..\nas\keyboardShortcuts.cpp" />
+    <ClCompile Include="..\nas\nasCmdlineEngine.cpp" />
     <ClCompile Include="..\nas\nasFileHandler.cpp" />
     <ClCompile Include="..\nas\nasServer.cpp" />
     <ClCompile Include="..\nas\nasUser.cpp" />
@@ -184,11 +188,14 @@
     <ClInclude Include="..\jsoncpp\include\writer.h" />
     <ClInclude Include="..\jsoncpp\src\json_tool.h" />
     <ClInclude Include="..\nas\fileCheck.h" />
+    <ClInclude Include="..\nas\keyboardShortcuts.h" />
     <ClInclude Include="..\nas\MsgDefine.h" />
+    <ClInclude Include="..\nas\nasCmdlineEngine.h" />
     <ClInclude Include="..\nas\nasFileHandler.h" />
     <ClInclude Include="..\nas\nasServer.h" />
     <ClInclude Include="..\nas\nasUser.h" />
     <ClInclude Include="..\nas\offLineService.h" />
+    <ClInclude Include="..\nas\transferParameters.h" />
     <ClInclude Include="..\osapi\Mutex.h" />
     <ClInclude Include="..\osapi\osapi.h" />
     <ClInclude Include="..\osapi\Semaphore.h" />
@@ -204,6 +211,8 @@
     <ClInclude Include="..\utility\FileUtils.h" />
     <ClInclude Include="..\utility\ThreadTcpRecv.h" />
     <ClInclude Include="..\utility\utility.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\jsoncpp\include\CMakeLists.txt" />
@@ -211,6 +220,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\jsoncpp\src\json_valueiterator.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Server.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\ico\NC.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

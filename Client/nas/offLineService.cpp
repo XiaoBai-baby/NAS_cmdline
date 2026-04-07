@@ -108,11 +108,11 @@ bool offLineService::isDirectory(string complete_path)
 
 	if (infos.st_mode & _S_IFDIR)
 	{
-		is_Dir = true;    			//Ä¿Â¼
+		is_Dir = true;    			//ç›®å½•
 	}
 	else if (infos.st_mode & _S_IFREG)
 	{
-		is_Dir = false;				//ÎÄ¼ş
+		is_Dir = false;				//æ–‡ä»¶
 	}
 #else
 	struct stat infos;
@@ -120,11 +120,11 @@ bool offLineService::isDirectory(string complete_path)
 
 	if (infos.st_mode & S_IFDIR)
 	{
-		is_Dir = true;    			//Ä¿Â¼
+		is_Dir = true;    			//ç›®å½•
 	}
 	else if (infos.st_mode & S_IFREG)
 	{
-		is_Dir = false;				//ÎÄ¼ş
+		is_Dir = false;				//æ–‡ä»¶
 	}
 #endif
 
@@ -142,10 +142,10 @@ int offLineService::isExistFile(string complete_path)
 	return exist;
 }
 
-// cmdout_file ÎªÁÙÊ±ÎÄ¼ş, ²»Îª¿ÕÊ±, ÔòÉ¾³ı;
+// cmdout_file ä¸ºä¸´æ—¶æ–‡ä»¶, ä¸ä¸ºç©ºæ—¶, åˆ™åˆ é™¤;
 string offLineService::temporaryFile(string cmdout_file)
 {
-	// É¾³ıÁÙÊ±ÎÄ¼ş;
+	// åˆ é™¤ä¸´æ—¶æ–‡ä»¶;
 	if (cmdout_file.size() > 0)
 	{
 	#if _WIN32
@@ -157,15 +157,15 @@ string offLineService::temporaryFile(string cmdout_file)
 		return cmdout_file;
 	}
 
-	// »ñÈ¡¿Í»§¶ËµÄIPµØÖ·;
+	// è·å–å®¢æˆ·ç«¯çš„IPåœ°å€;
 	OS_SockAddr SockAddr;
 	Sock.GetPeerAddr(SockAddr);
 
-	// ´´½¨Ò»¸öÁÙÊ±ÎÄ¼ş, ÓÃÀ´±£´æÓÃ»§µÄ²Ù×÷½á¹û;
+	// åˆ›å»ºä¸€ä¸ªä¸´æ—¶æ–‡ä»¶, ç”¨æ¥ä¿å­˜ç”¨æˆ·çš„æ“ä½œç»“æœ;
 	unsigned short pid = SockAddr.GetPort();
 	string file = "outcmd" + std::to_string(pid) + ".txt";
 
-	// ÁÙÊ±ÎÄ¼şµÄ±£»¤, ·ÀÖ¹ÎÄ¼şÖØÃüÃû;
+	// ä¸´æ—¶æ–‡ä»¶çš„ä¿æŠ¤, é˜²æ­¢æ–‡ä»¶é‡å‘½å;
 	do
 	{
 		int exist = 0;
@@ -218,12 +218,12 @@ int offLineService::offLineHandler()
 		if (type == MSG_MOVE || type == MSG_COPY)
 		{
 			/*
-				´´½¨ destination Ä¿Â¼;
-				×¢Òâ, µ± move ÃüÁî¿½±´¶à¸öÄ¿Â¼Ê±, Èç¹û destination µÄ×ÓÄ¿Â¼²»´æÔÚ, /
-				move ÃüÁî»áÌø¹ıµÚÒ»¸öÄ¿Â¼µÄ´´½¨, ²¢Îª destination ´´½¨×ÓÄ¿Â¼;
+				åˆ›å»º destination ç›®å½•;
+				æ³¨æ„, å½“ move å‘½ä»¤æ‹·è´å¤šä¸ªç›®å½•æ—¶, å¦‚æœ destination çš„å­ç›®å½•ä¸å­˜åœ¨, /
+				move å‘½ä»¤ä¼šè·³è¿‡ç¬¬ä¸€ä¸ªç›®å½•çš„åˆ›å»º, å¹¶ä¸º destination åˆ›å»ºå­ç›®å½•;
 			*/
 
-			// argv[1] Îª destination Ä¿Â¼;
+			// argv[1] ä¸º destination ç›®å½•;
 			string directory = (const char*)argv[1];
 			result = isExistFile(directory);
 			if (result != 0)
@@ -238,21 +238,21 @@ int offLineService::offLineHandler()
 			}
 		}
 
-		// É¾³ıÖØ¸´³öÏÖµÄÎÄ¼ş, ·ÀÖ¹ÎÄ¼ş³öÏÖ´íÎó;
+		// åˆ é™¤é‡å¤å‡ºç°çš„æ–‡ä»¶, é˜²æ­¢æ–‡ä»¶å‡ºç°é”™è¯¯;
 		if (argv[0] != NULL && type == MSG_REMOVE)
 		{
 			result = isExistFile(string(argv[0]));
 		}
 		else if (argc > 2)						// MSG_MOVE, MSG_COPY
 		{
-			// ÓÃÓÚ¼ì²é destination_file µÄ×ÓÎÄ¼şÊÇ·ñÖØ¸´;
+			// ç”¨äºæ£€æŸ¥ destination_file çš„å­æ–‡ä»¶æ˜¯å¦é‡å¤;
 			string complete_cmdline = argv[1];
 			complete_cmdline += "/";
 			complete_cmdline += argv[2];
 
 			result = isExistFile(complete_cmdline);
 
-			// ÎÄ¼ş²»´æÔÚ, ÖÃÎª 0; ´æÔÚ, ÖÃÎª 1;
+			// æ–‡ä»¶ä¸å­˜åœ¨, ç½®ä¸º 0; å­˜åœ¨, ç½®ä¸º 1;
 			if (result != 0)
 				result = 0;
 			else
@@ -272,7 +272,7 @@ int offLineService::offLineHandler()
 
 		string outcmd = temporaryFile();
 
-		// Ö´ĞĞ·şÎñ;
+		// æ‰§è¡ŒæœåŠ¡;
 		if(argv[0] == NULL)
 		{
 			continue;
@@ -285,7 +285,7 @@ int offLineService::offLineHandler()
 			else
 				DeleteFileA(cmdline_path.c_str());
 		#else
-			// Ö´ĞĞÃüÁî;
+			// æ‰§è¡Œå‘½ä»¤;
 			string cmdline2 = "rm -Rf ";
 			cmdline2 += cmdline_path;
 			cmdline2 += " > " + outcmd;
@@ -298,7 +298,7 @@ int offLineService::offLineHandler()
 			if(argc > 2)
 				result = isExistFile(string(argv[1]));
 
-			// Ìí¼ÓÃüÁîĞĞµÄÃüÁî;
+			// æ·»åŠ å‘½ä»¤è¡Œçš„å‘½ä»¤;
 			cmdline = (const char*)argv[0];
 			cmdline += " ";
 			cmdline += (const char*)argv[1];
@@ -314,11 +314,11 @@ int offLineService::offLineHandler()
 			}
 			else if (type == MSG_COPY)
 			{
-				// ÅĞ¶ÏÊÇ·ñÎªÄ¿Â¼;
+				// åˆ¤æ–­æ˜¯å¦ä¸ºç›®å½•;
 				bool is_directory = isDirectory((const char*)argv[0]);
 
 			#ifdef _WIN32
-				// ¼ÓÉÏÃüÁîĞĞµÄÄ¿Â¼;
+				// åŠ ä¸Šå‘½ä»¤è¡Œçš„ç›®å½•;
 				if (is_directory)
 				{
 					cmdline += "/";
@@ -327,14 +327,14 @@ int offLineService::offLineHandler()
 
 				cmdline = FileUtils::BackSlash(cmdline);
 				if (is_directory)
-					cmdline.insert(0, "xcopy /E /Y /G /H /I /K ");				// ¸´ÖÆÄ¿Â¼;
+					cmdline.insert(0, "xcopy /E /Y /G /H /I /K ");				// å¤åˆ¶ç›®å½•;
 				else
-					cmdline.insert(0, "xcopy /Y /G /H /I /K ");					// ¸´ÖÆÎÄ¼ş;
+					cmdline.insert(0, "xcopy /Y /G /H /I /K ");					// å¤åˆ¶æ–‡ä»¶;
 			#else
 				cmdline.insert(0, "cp -f -a ");
 			#endif
 			}
-			// Ö´ĞĞÃüÁî;
+			// æ‰§è¡Œå‘½ä»¤;
 			cmdline += " > " + outcmd;
 			system(cmdline.c_str());
 			cmdline.clear();

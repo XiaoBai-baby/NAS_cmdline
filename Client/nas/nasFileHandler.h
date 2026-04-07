@@ -14,6 +14,7 @@
 #include "MsgDefine.h"
 #include "fileCheck.h"
 #include "offLineService.h"
+#include "transferParameters.h"
 #include "../utility/FileUtils.h"
 #include "../jsoncpp/include/json.h"
 
@@ -30,7 +31,7 @@ using std::fstream;
 /* FileHandler
 	文件处理器, 用于处理文件操作;
 */
-class FileHandler
+class FileHandler: public transferParameters
 {
 public:
 	FileHandler();
@@ -108,6 +109,17 @@ public:
 	// 中文字符集转换, 用于外部函数调用;
 	string characterEncoding(char* src_str, int src_length);
 
+public:
+	// 检查单个文件大小, 辅助 checkFileSize使用;
+	void checkSingleFile(string path, string part);
+
+	// 遍历整个目录文件, 辅助 checkFileSize使用;
+	void checkDirectory(string path, string part, bool isDirectory = false);
+
+	// 检查文件大小, 用于客户端上传文件;
+	void checkFileSize(OS_Mutex& Mutex, char** argv, int argc);
+
+public:
 	// 上传文件;
 	void uploadFile(string path, char** argv, int argc, OS_Mutex& Mutex);
 

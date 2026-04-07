@@ -406,66 +406,28 @@ string FileUtils::BackSlash(const string dir)
 	return result;
 }
 
-#ifdef _WIN32
-// number 为删除字符的数量;
-// line_offset 为 命令行 当前行数的偏移量;
-void FileUtils::RemoveWindowsCharacter(int number, int line_offset)
+
+void FileUtils::Login_Result()
 {
-	// 获取控制台屏幕缓冲区句柄;
-	// HANDLE screen = GetStdHandle(STD_OUTPUT_HANDLE);				// 控制台标准输入句柄被 SetStdHandle 函数重定向, 则无法使用;
-	HANDLE screen = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL, OPEN_EXISTING, NULL, NULL);
-
-	// 控制台屏幕缓冲区扩展信息;
-	// 不推荐使用, 当 GetConsoleScreenBufferInfoEx检索不到扩展信息时, 则返回 false;
-	// _CONSOLE_SCREEN_BUFFER_INFOEX screen_buffer = { 0 };
-
-	// 控制台屏幕缓冲区信息;
-	_CONSOLE_SCREEN_BUFFER_INFO screen_buffer = { 0 };
-
-	// 检索控制台屏幕缓冲区的信息;
-	bool screen_flag = GetConsoleScreenBufferInfo(screen, &screen_buffer);
-	if (screen_flag)
-	{
-		// 获取光标的位置;
-		short x = screen_buffer.dwCursorPosition.X;
-		short y = screen_buffer.dwCursorPosition.Y;
-
-		y -= line_offset;
-
-		// 设置控制台光标的位置;
-		_COORD cursor_position = { number, y };
-		SetConsoleCursorPosition(screen, cursor_position);
-
-		// 移动光标到起始位置;
-		// printf("\x1B[H");
-
-		// 使用ANSI转义的 BackSpace键 删除字符;
-		// 注意, 使用 ANSI码 删除时, 删除的范围只有一行;
-		for (int j = 0; j < number; j++)
-			printf("\x1B[1D");
-	}
-}
-#endif
-
-
-string FileUtils::Login_Result(Json::Value list)
-{
-	string result;
-	result.append("* * * * * * * * * * * * * * * * * * * * * * * * \n");
-	result.append("*                                             * \n");
-	result.append("*          Welcome To The NAS cmdline .       * \n");
-	result.append("*                                             * \n");
-	result.append("*  You can use 'help' to consult commands .   * \n");
-	result.append("*                                             * \n");
-	result.append("* * * * * * * * * * * * * * * * * * * * * * * * \n");
-	result.append("--------------------------OK------------------------ \n");
+	// printf("* * * * * * * * * * * * * * * * * * * * * * * * \n");
+	// printf("*                                             * \n");
+	// printf("*          Welcome To The NAS cmdline .       * \n");
+	// printf("*                                             * \n");
+	// printf("*  You can use 'help' to consult commands .   * \n");
+	// printf("*                                             * \n");
+	// printf("* * * * * * * * * * * * * * * * * * * * * * * * \n");
+	// printf("--------------------------OK------------------------ \n");
 	
-#ifdef _WIN32
-	List_Result(list, result);
-#endif
+	printf("\n");
+	printf(" _   _     __     ____     ____             _  _   \n");
+	printf("| \\ | |   /  \\   /  __|   / __| __  __   __| || | _  _  _  __ __     \n");
+	printf("|  \\| |  / /\\ \\  \\__ <   / /   |  \\/  | / _  || |(_)| \\| || _/\\_\\    \n");
+	printf("| \\ \\ | / /__\\ \\  __> \\  \\ \\__ | |\\/| || |_| || || || \\\\ || |___    \n");
+	printf("|_|\\__|/_/    \\_\\|____/   \\___||_|  |_| \\____||_||_||_|\\_||_____|     \n");
+	printf("\nWelcome to the NAS cmdline, you can use 'help' to consult commands .\n\n\n");
+	printf("Current system directory: \n");
 
-	return result;
+	return;
 }
 
 string FileUtils::List_Result(Json::Value list, string& result)

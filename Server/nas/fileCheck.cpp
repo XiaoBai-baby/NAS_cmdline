@@ -6,15 +6,17 @@ fileCheck::fileCheck()
 	peer_system = 1;
 	isClient = false;
 	m_type = 0;
+	maxCmdlineParameters = 8;
 }
 
-fileCheck::fileCheck(OS_TcpSocket& sock, string homeDir, char system, bool is_client)
+fileCheck::fileCheck(OS_TcpSocket& sock, string homeDir, int maxParameters, char system, bool is_client)
 {
 	local_system = system;
 	isClient = is_client;
 	
 	m_homeDir = homeDir;
 	Sock = sock;
+	maxCmdlineParameters = maxParameters;
 }
 
 void fileCheck::operator()(char peerTheSystem)
@@ -49,13 +51,14 @@ void fileCheck::operator()(string homeDir)
 	m_homeDir = homeDir;
 }
 
-void fileCheck::operator()(OS_TcpSocket& sock, string homeDir, char system, bool is_client)
+void fileCheck::operator()(OS_TcpSocket& sock, string homeDir, int maxParameters, char system, bool is_client)
 {
 	local_system = system;
 	isClient = is_client;
 
 	m_homeDir = homeDir;
 	Sock = sock;
+	maxCmdlineParameters = maxParameters;
 }
 
 
@@ -671,9 +674,19 @@ string fileCheck::checkFile(string& path, char* data, unsigned int type)
 	// 获取命令行的子命令;
 	int argc = FileUtils::Split(cmdline, argv);
 	if (argc < 0) throw result;
-	if (argc > 8)
+	if (argc > maxCmdlineParameters)
 	{
-		result = "Access denied, Because command too long ! \n";
+		char parameters[32] = { 0 };
+	#ifdef _WIN32
+		_itoa_s(maxCmdlineParameters, parameters, 32);
+	#else
+		_itoa(maxCmdlineParameters, parameters, 32);
+	#endif
+
+		// 命令行的参数太多;
+		result = "There are too many command line parameters, the command line parameters cannot be greater than ";
+		result += parameters;
+		result += " ! \n";
 		throw result;
 	}
 

@@ -87,6 +87,12 @@
     <ClCompile Include="..\nas\offLineService.cpp">
       <Filter>nas</Filter>
     </ClCompile>
+    <ClCompile Include="..\nas\keyboardShortcuts.cpp">
+      <Filter>nas</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nas\nasCmdlineEngine.cpp">
+      <Filter>nas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\osapi\osapi.h">
@@ -167,10 +173,32 @@
     <ClInclude Include="..\nas\offLineService.h">
       <Filter>nas</Filter>
     </ClInclude>
+    <ClInclude Include="..\nas\keyboardShortcuts.h">
+      <Filter>nas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\nas\transferParameters.h">
+      <Filter>nas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\nas\nasCmdlineEngine.h">
+      <Filter>nas</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>osapi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\jsoncpp\src\json_valueiterator.inl">
       <Filter>jsoncpp\src</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Client.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\ico\NC.ico">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
